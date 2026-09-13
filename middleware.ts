@@ -37,10 +37,13 @@ export function middleware(req: NextRequest) {
     return new NextResponse(null, { status: 404 })
   }
 
-  // Page probes get the normal branded 404 via the not-found boundary.
-  const url = req.nextUrl.clone()
-  url.pathname = ABSENT_PATH
-  return NextResponse.rewrite(url)
+  // Subpath probes without a session redirect to the main control gateway.
+  if (req.nextUrl.pathname.startsWith('/control/')) {
+    return NextResponse.redirect(new URL('/control', req.url))
+  }
+
+  // /control proceeds to app/control/page.tsx which presents the owner authentication gateway.
+  return NextResponse.next()
 }
 
 export const config = {

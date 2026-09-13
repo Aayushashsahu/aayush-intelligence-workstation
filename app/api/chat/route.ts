@@ -162,6 +162,31 @@ function extractJson(raw: string): any | null {
   }
 }
 
+async function callGemini(key: string, model: string, systemPrompt: string, userMessage: string) {
+  const cleanModel = model.replace(/^google\//, '')
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${key}`
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: {
+        parts: [{ text: systemPrompt }],
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: userMessage }],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        maxOutputTokens: 2500,
+        temperature: 0.2,
+      },
+    }),
+  })
+}
+
 async function callOpenAI(key: string, model: string, body: Record<string, unknown>) {
   return fetch('https://api.openai.com/v1/responses', {
     method: 'POST',
@@ -184,17 +209,24 @@ export async function POST(req: Request) {
   // Defensive cap so the endpoint cannot be used as a large payload relay.
   message = message.slice(0, 1200)
 
-  const key = process.env.OPENAI_API_KEY
-  if (!key) {
+  // Prioritize Gemini credentials, with fallback to OpenAI if configured
+  const geminiKey =
+    process.env.GEMINI_API_KEY ||
+    (process.env.OPENAI_API_KEY?.startsWith('AQ.') || process.env.OPENAI_API_KEY?.startsWith('AIza')
+      ? process.env.OPENAI_API_KEY
+      : null)
+  const openaiKey = !geminiKey ? process.env.OPENAI_API_KEY : null
+
+  if (!geminiKey && !openaiKey) {
     return NextResponse.json({
       kind: 'declined',
       summary:
-        'CORTEX is not connected to a language model in this environment. The live data layer is unaffected — set OPENAI_API_KEY server-side to enable reasoning.',
+        'CORTEX is not connected to a language model in this environment. The live data layer is unaffected — set GEMINI_API_KEY server-side to enable reasoning.',
       verdict: null,
       confidence: null,
       evidence: [],
       gaps: ['AI provider key not configured on the server.'],
-      verify: ['Confirm the deployment environment has OPENAI_API_KEY set (server-side only).'],
+      verify: ['Confirm the deployment environment has GEMINI_API_KEY set (server-side only).'],
     })
   }
 
@@ -209,42 +241,71 @@ export async function POST(req: Request) {
   const { bundle } = await getPublishedContent()
 
   const system = `${CORE}\n\n=== EVIDENCE BASE ===\n\n${curatedContext(bundle)}\n\n${liveContext(github)}`
-  const model = process.env.OPENAI_MODEL || 'gpt-5-mini'
-
-  const baseBody = {
-    model,
-    input: [
-      { role: 'system', content: [{ type: 'input_text', text: system }] },
-      { role: 'user', content: [{ type: 'input_text', text: message }] },
-    ],
-    max_output_tokens: 900,
-  }
 
   try {
-    // Preferred: ask the provider to constrain output to a JSON object.
-    let res = await callOpenAI(key, model, { ...baseBody, text: { format: { type: 'json_object' } } })
-    if (!res.ok) {
-      // Fall back to prompt-only JSON if the provider rejects the format parameter.
-      res = await callOpenAI(key, model, baseBody)
+    let raw = ''
+
+    if (geminiKey) {
+      const model = process.env.GEMINI_MODEL || process.env.OPENAI_MODEL || 'gemini-2.5-flash'
+      const res = await callGemini(geminiKey, model, system, message)
+      if (!res.ok) {
+        return NextResponse.json(
+          {
+            kind: 'declined',
+            summary: 'CORTEX could not reach the Gemini reasoning provider. The evidence layer is still live.',
+          },
+          { status: 502 },
+        )
+      }
+      const data = await res.json()
+      raw = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    } else if (openaiKey) {
+      const model = process.env.OPENAI_MODEL || 'gpt-5-mini'
+      const baseBody = {
+        model,
+        input: [
+          { role: 'system', content: [{ type: 'input_text', text: system }] },
+          { role: 'user', content: [{ type: 'input_text', text: message }] },
+        ],
+        max_output_tokens: 900,
+      }
+      let res = await callOpenAI(openaiKey, model, { ...baseBody, text: { format: { type: 'json_object' } } })
+      if (!res.ok) {
+        res = await callOpenAI(openaiKey, model, baseBody)
+      }
+      if (!res.ok) {
+        return NextResponse.json(
+          {
+            kind: 'declined',
+            summary: 'CORTEX could not reach the reasoning provider. The evidence layer is still live.',
+          },
+          { status: 502 },
+        )
+      }
+      const data = await res.json()
+      raw =
+        data.output?.flatMap((x: any) => x.content || []).map((x: any) => x.text).filter(Boolean).join('') ||
+        data.output_text ||
+        ''
     }
-    if (!res.ok) {
-      return NextResponse.json(
-        { kind: 'declined', summary: 'CORTEX could not reach the reasoning provider. The evidence layer is still live.' },
-        { status: 502 },
-      )
-    }
-    const data = await res.json()
-    const raw: string =
-      data.output?.flatMap((x: any) => x.content || []).map((x: any) => x.text).filter(Boolean).join('') ||
-      data.output_text ||
-      ''
+
     const parsed = extractJson(raw)
     if (parsed) return NextResponse.json(parsed)
-    return NextResponse.json({ kind: 'profile', summary: raw || 'No answer generated.', evidence: [], gaps: [], verify: [] })
+    return NextResponse.json({
+      kind: 'profile',
+      summary: raw || 'No answer generated.',
+      evidence: [],
+      gaps: [],
+      verify: [],
+    })
   } catch {
     return NextResponse.json(
-      { kind: 'declined', summary: 'CORTEX encountered an unexpected error. Nothing was fabricated in its place.' },
+      {
+        kind: 'declined',
+        summary: 'CORTEX encountered an unexpected error. Nothing was fabricated in its place.',
+      },
       { status: 502 },
     )
   }
 }
+

@@ -1,0 +1,303 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   AAYUSH // INTELLIGENCE WORKSTATION — design system
+   Graphite · titanium · silver · warm white · single restrained amber accent
+   ========================================================================== */
+
+@layer base {
+  :root {
+    --bg: #0a0a0b;
+    --bg-deep: #070708;
+    --surface: #131315;
+    --surface-2: #18181b;
+    --surface-3: #1f1f23;
+    --line: #26262b;
+    --line-2: #37373e;
+    --text: #ededee;
+    --muted: #9c9ca4;
+    --dim: #6a6a72;
+    --amber: #ff8a2b;
+    --amber-hi: #ffb473;
+    --amber-lo: #b8621c;
+    --amber-wash: rgba(255, 138, 43, 0.09);
+    --amber-line: rgba(255, 138, 43, 0.28);
+    --led: #7ed957;
+    --danger: #ff5f57;
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  button, input, textarea, select { font: inherit; }
+  button { cursor: pointer; }
+  ::selection { background: rgba(255, 138, 43, 0.26); color: #fff; }
+
+  /* Ambient environment: soft amber key light + graphite falloff + hairline grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(900px 520px at 78% -8%, rgba(255, 138, 43, 0.075), transparent 62%),
+      radial-gradient(700px 480px at 6% 92%, rgba(255, 138, 43, 0.03), transparent 60%),
+      linear-gradient(180deg, #0c0c0e 0%, #08080a 60%, #060607 100%);
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 64px 64px, 64px 64px;
+    mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, #000 20%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 120% 90% at 50% 0%, #000 20%, transparent 78%);
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2b2b31; border: 3px solid transparent; background-clip: content-box; border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a42; background-clip: content-box; }
+}
+
+@layer components {
+  /* --- typography -------------------------------------------------------- */
+  .mono {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-variant-ligatures: none;
+  }
+  .tk { letter-spacing: 0.18em; }
+  .tk-lg { letter-spacing: 0.3em; }
+
+  /* --- materials --------------------------------------------------------- */
+  .metal {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 42%),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.013) 0 1px, transparent 1px 4px),
+      linear-gradient(180deg, #1b1b1f, #131315);
+  }
+
+  .panel {
+    position: relative;
+    background: linear-gradient(180deg, rgba(24, 24, 27, 0.9), rgba(15, 15, 17, 0.94));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px -34px rgba(0, 0, 0, 0.95);
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1) 22%, rgba(255, 255, 255, 0.1) 78%, transparent);
+    pointer-events: none;
+  }
+  .panel-flat {
+    background: rgba(0, 0, 0, 0.26);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .hairline { border-color: var(--line); }
+
+  /* --- status LEDs ------------------------------------------------------- */
+  .led {
+    width: 7px; height: 7px; flex: none;
+    border-radius: 50%;
+    background: var(--led);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7), 0 0 7px rgba(126, 217, 87, 0.45);
+  }
+  .led-amber { background: var(--amber); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7), 0 0 7px rgba(255, 138, 43, 0.5); }
+  .led-danger { background: var(--danger); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.7), 0 0 7px rgba(255, 95, 87, 0.5); }
+  .led-idle { background: #3b3b42; box-shadow: none; }
+  .led-pulse { animation: ledPulse 2.6s ease-in-out infinite; }
+
+  /* --- text accents ------------------------------------------------------ */
+  .amber { color: var(--amber-hi); }
+  .amber-pure { color: var(--amber); }
+  .muted { color: var(--muted); }
+  .dim { color: var(--dim); }
+
+  /* --- controls ---------------------------------------------------------- */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    border: 1px solid var(--line-2);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0));
+    color: var(--muted);
+    padding: 0.5rem 0.8rem;
+    border-radius: 2px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    transition: color 0.16s, border-color 0.16s, background-color 0.16s;
+  }
+  .btn:hover { color: var(--text); border-color: var(--line-2); background-color: rgba(255, 255, 255, 0.05); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .btn-amber {
+    border-color: var(--amber-line);
+    background: linear-gradient(180deg, rgba(255, 138, 43, 0.16), rgba(255, 138, 43, 0.04));
+    color: var(--amber-hi);
+  }
+  .btn-amber:hover { color: #fff; border-color: var(--amber); background-color: rgba(255, 138, 43, 0.2); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 0.3rem 0.55rem;
+    border-radius: 2px;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    font-family: 'IBM Plex Mono', monospace;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .chip-amber { border-color: var(--amber-line); color: var(--amber-hi); background: var(--amber-wash); }
+
+  /* --- subsystem rail ---------------------------------------------------- */
+  .rail-item {
+    position: relative;
+    display: flex; align-items: center; gap: 0.6rem;
+    width: 100%;
+    padding: 0.52rem 0.7rem;
+    border: 1px solid transparent;
+    border-radius: 2px;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: left;
+    transition: color 0.16s, border-color 0.16s, background-color 0.16s;
+  }
+  .rail-item:hover { color: var(--text); border-color: var(--line); background-color: rgba(255, 255, 255, 0.028); }
+  .rail-item[aria-current='true'] {
+    color: var(--amber-hi);
+    border-color: var(--amber-line);
+    background: linear-gradient(90deg, var(--amber-wash), transparent 85%);
+  }
+  .rail-item[aria-current='true']::before {
+    content: '';
+    position: absolute; left: 0; top: 12%; bottom: 12%;
+    width: 2px; background: var(--amber);
+  }
+
+  /* --- contribution heatmap (GitHub-recognisable green, graphite-restrained) */
+  .heat {
+    aspect-ratio: 1 / 1;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.045);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+  .heat-legend { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* --- windows ----------------------------------------------------------- */
+  .win {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, #16161a, #101012);
+    box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    max-height: calc(100dvh - 2rem);
+  }
+  .win[data-focused='true'] { border-color: rgba(255, 138, 43, 0.4); }
+  .win-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--line);
+    user-select: none;
+    flex: none;
+  }
+  .win-grip { cursor: grab; }
+  .win-grip:active { cursor: grabbing; }
+  .win-bar button {
+    display: grid; place-items: center;
+    padding: 4px; color: var(--dim); border-radius: 2px;
+  }
+  .win-bar button:hover { color: var(--text); background-color: rgba(255, 255, 255, 0.06); }
+  .win-body { overflow: auto; padding: 1rem; flex: 1 1 auto; min-height: 0; }
+
+  /* Mobile: windows become stackable sheets. Dragging is disabled in JS.
+     Top offset clears the sticky header; bottom clears the taskbar so both stay reachable. */
+  .win-sheet {
+    inset: 7.25rem 0.5rem 3rem 0.5rem !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* --- terminal ---------------------------------------------------------- */
+  .term {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    line-height: 1.75;
+  }
+  .term-body { overflow: auto; padding: 0.85rem 1rem; flex: 1 1 auto; min-height: 0; white-space: pre-wrap; word-break: break-word; }
+  .term-input {
+    display: flex; gap: 0.6rem; align-items: center;
+    border-top: 1px solid var(--line);
+    padding: 0.7rem 1rem;
+    flex: none;
+  }
+  .term-input input { flex: 1; min-width: 0; background: transparent; color: var(--text); outline: none; }
+  .term-input input::placeholder { color: var(--dim); }
+
+  /* --- misc -------------------------------------------------------------- */
+  .focus-ring:focus-visible { outline: 1px solid var(--amber); outline-offset: 2px; }
+  .clamp-2 {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .progress-track { height: 2px; background: var(--line); overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--amber); transition: width 0.4s ease; }
+}
+
+@layer base {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  summary:focus-visible {
+    outline: 1px solid var(--amber);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes ledPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* --- motion preferences -------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

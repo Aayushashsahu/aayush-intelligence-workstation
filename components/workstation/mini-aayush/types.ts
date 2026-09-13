@@ -28,3 +28,6 @@ export type MiniAayushMood =
   | 'guiding'
   | 'sleeping'
   | 'celebrating'
+  | 'dragging'
+  | 'settling'
+

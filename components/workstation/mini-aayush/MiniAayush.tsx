@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useWorkstation } from '@/components/workstation/store'
 import { useMiniAayushBehavior } from './behavior'
@@ -19,11 +19,75 @@ export default function MiniAayush() {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  const { state, handleClick, triggerFallSequence } = useMiniAayushBehavior(
-    view,
-    windows,
-    !reducedMotion && !minimized
-  )
+  const {
+    state,
+    handleClick,
+    triggerFallSequence,
+    startDrag,
+    updateDrag,
+    endDrag,
+  } = useMiniAayushBehavior(view, windows, !reducedMotion && !minimized)
+
+  // Drag Pointer Tracking
+  const isPointerDownRef = useRef(false)
+  const hasMovedRef = useRef(false)
+  const startPosRef = useRef({ x: 0, y: 0 })
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return
+    if (state.mood === 'stumbling' || state.mood === 'recovering') return
+
+    isPointerDownRef.current = true
+    hasMovedRef.current = false
+    startPosRef.current = { x: e.clientX, y: e.clientY }
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId)
+    } catch {}
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return
+
+    if (!hasMovedRef.current) {
+      const dx = e.clientX - startPosRef.current.x
+      const dy = e.clientY - startPosRef.current.y
+      if (dx * dx + dy * dy > 25) {
+        hasMovedRef.current = true
+        startDrag(e.clientX, e.clientY)
+      }
+    } else {
+      updateDrag(e.clientX, e.clientY)
+    }
+  }
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return
+    isPointerDownRef.current = false
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {}
+
+    if (!hasMovedRef.current) {
+      handleClick()
+    } else {
+      endDrag()
+    }
+  }
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isPointerDownRef.current) return
+    isPointerDownRef.current = false
+
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {}
+
+    if (hasMovedRef.current) {
+      endDrag()
+    }
+  }
 
   if (minimized) {
     return (
@@ -45,7 +109,7 @@ export default function MiniAayush() {
 
   // Determine physical animation style based on mood and reduced motion
   let motionAnimation = 'none'
-  if (!reducedMotion) {
+  if (!reducedMotion && !state.isDragging) {
     if (state.mood === 'walking') {
       motionAnimation = 'mini-walk-bob 0.38s ease-in-out infinite alternate'
     } else if (state.mood === 'idle') {
@@ -86,11 +150,17 @@ export default function MiniAayush() {
         className="fixed bottom-[44px] z-40 select-none pointer-events-none"
         style={{
           left: `${posX}%`,
-          transform: 'translateX(-50%)',
+          transform: `translateX(-50%) translateY(${-state.dragY}px)`,
           transition:
-            reducedMotion || state.mood !== 'walking'
+            state.isDragging
               ? 'none'
-              : 'left 3.2s cubic-bezier(0.25, 1, 0.5, 1)',
+              : state.mood === 'settling'
+              ? reducedMotion
+                ? 'left 0.2s ease-out'
+                : 'transform 0.45s cubic-bezier(0.34, 1.45, 0.64, 1), left 0.35s ease-out'
+              : state.mood === 'walking' && !reducedMotion
+              ? 'left 3.2s cubic-bezier(0.25, 1, 0.5, 1)'
+              : 'none',
         }}
       >
         <div className="relative flex flex-col items-center">
@@ -105,8 +175,14 @@ export default function MiniAayush() {
                 <div className="mono mb-1.5 flex items-center justify-between gap-2 text-[8px] tk-lg text-[var(--amber)]">
                   <span className="flex items-center gap-1.5">
                     <Led
-                      tone={state.isSleeping ? 'idle' : state.isFalling ? 'amber' : 'live'}
-                      pulse={state.isFalling}
+                      tone={
+                        state.isSleeping
+                          ? 'idle'
+                          : state.isFalling || state.isDragging
+                          ? 'amber'
+                          : 'live'
+                      }
+                      pulse={state.isFalling || state.isDragging}
                     />
                     MINI AAYUSH // HOST
                   </span>
@@ -124,32 +200,62 @@ export default function MiniAayush() {
             </div>
           )}
 
-          {/* Mini Aayush Character Button */}
-          <button
-            onClick={handleClick}
-            onDoubleClick={triggerFallSequence}
-            className="pointer-events-auto group relative cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-[var(--amber)]"
-            aria-label={`Mini Aayush workstation host, currently ${state.mood}. Click to interact, double click to trigger stumble.`}
-            title="Click to interact with Mini Aayush (Double click for stumble)"
-          >
-            {/* Dynamic Ground Contact Shadow */}
-            <div
-              className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full transition-all duration-300"
-              style={{
-                width: state.mood === 'fallen' ? '76px' : state.mood === 'walking' ? '44px' : '52px',
-                height: state.mood === 'fallen' ? '8px' : '4px',
-                background:
-                  'radial-gradient(ellipse at center, rgba(0,0,0,0.68) 0%, rgba(0,0,0,0) 75%)',
-              }}
-              aria-hidden
-            />
+          {/* Dynamic Ground Contact Shadow (anchored to bottom rail plane) */}
+          <div
+            className="absolute -bottom-1 left-1/2 rounded-full pointer-events-none"
+            style={{
+              transform: `translateX(-50%) translateY(${state.dragY}px) scale(${Math.max(
+                0.35,
+                1 - state.dragY / 320
+              )})`,
+              opacity: Math.max(0.18, 1 - state.dragY / 240),
+              filter: `blur(${Math.min(4, state.dragY / 60)}px)`,
+              width:
+                state.mood === 'fallen' ? '76px' : state.mood === 'walking' ? '44px' : '52px',
+              height: state.mood === 'fallen' ? '8px' : '4px',
+              background:
+                'radial-gradient(ellipse at center, rgba(0,0,0,0.68) 0%, rgba(0,0,0,0) 75%)',
+              transition: state.isDragging
+                ? 'none'
+                : 'transform 0.45s cubic-bezier(0.34, 1.45, 0.64, 1), opacity 0.45s ease-out, filter 0.45s ease-out',
+            }}
+            aria-hidden
+          />
 
-            {/* Sprite container with physics & facing flip */}
+          {/* Mini Aayush Draggable Character Wrapper */}
+          <div
+            role="button"
+            tabIndex={0}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleClick()
+              }
+            }}
+            onDoubleClick={triggerFallSequence}
+            className={`pointer-events-auto group relative select-none outline-none focus-visible:ring-1 focus-visible:ring-[var(--amber)] ${
+              state.isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+            style={{ touchAction: 'none' }}
+            aria-label={`Mini Aayush workstation host, currently ${state.mood}. Click to interact or drag to reposition.`}
+            title="Click to interact, or click and drag Mini Aayush around the workstation"
+          >
+            {/* Sprite container with physics, scale on grab, tilt & facing flip */}
             <div
               style={{
-                transform: state.facing === 'right' ? 'scaleX(-1)' : 'scaleX(1)',
-                filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.5))',
-                transition: 'transform 0.25s ease-out',
+                transform: `scaleX(${state.facing === 'right' ? -1 : 1}) rotate(${
+                  reducedMotion ? 0 : state.tilt
+                }deg) scale(${state.isDragging ? 1.14 : 1})`,
+                filter: state.isDragging
+                  ? 'drop-shadow(0 14px 20px rgba(0,0,0,0.65)) drop-shadow(0 0 14px rgba(245,158,11,0.28))'
+                  : 'drop-shadow(0 4px 10px rgba(0,0,0,0.5))',
+                transition: state.isDragging
+                  ? 'scale 0.18s ease-out, filter 0.2s ease-out'
+                  : 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease-out',
               }}
             >
               <div
@@ -167,10 +273,11 @@ export default function MiniAayush() {
                   className="h-[80px] w-auto object-contain select-none pointer-events-none drop-shadow-md transition-transform duration-200 group-hover:scale-105 group-active:scale-95"
                   priority
                   unoptimized
+                  draggable={false}
                 />
               </div>
             </div>
-          </button>
+          </div>
 
           {/* Minimal Control Pill on hover */}
           <div className="pointer-events-auto mt-1 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity">

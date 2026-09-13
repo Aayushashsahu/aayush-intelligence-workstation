@@ -32,3 +32,20 @@ export const IDLE_THOUGHTS: string[] = [
   'monitoring system health...',
   'fail-closed by default.',
 ]
+
+export const PICKUP_DIALOGUE: string[] = [
+  'uhh?',
+  'hey—',
+  'whoa!',
+  'wait—',
+  'where to?',
+]
+
+export const SETTLE_DIALOGUE: string[] = [
+  'okay... this works.',
+  'nice spot.',
+  'back on solid ground.',
+  'safely docked.',
+  'phew.',
+]
+

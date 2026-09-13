@@ -8,16 +8,21 @@ import {
   FALL_DIALOGUE,
   SLEEP_DIALOGUE,
   IDLE_THOUGHTS,
+  PICKUP_DIALOGUE,
+  SETTLE_DIALOGUE,
 } from './dialogue'
 
 export interface MiniAayushState {
   pose: MiniAayushPose
   mood: MiniAayushMood
   speech: string | null
-  posX: number // percentage across bottom rail (12% to 85%)
+  posX: number // percentage across bottom rail (8% to 92%)
+  dragY: number // vertical lift height (0 when grounded)
+  tilt: number // angular tilt during drag/movement (-14 to +14 deg)
   facing: 'left' | 'right'
   isSleeping: boolean
   isFalling: boolean
+  isDragging: boolean
   hasEntered: boolean
 }
 
@@ -31,9 +36,12 @@ export function useMiniAayushBehavior(
     mood: 'walking',
     speech: null,
     posX: 96,
+    dragY: 0,
+    tilt: 0,
     facing: 'left',
     isSleeping: false,
     isFalling: false,
+    isDragging: false,
     hasEntered: false,
   })
 
@@ -42,7 +50,11 @@ export function useMiniAayushBehavior(
   const animTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const wanderIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const isInteractingRef = useRef(false)
+  const isDraggingRef = useRef(false)
+  const lastPointerXRef = useRef(0)
+  const lastPointerYRef = useRef(0)
   const walkCountRef = useRef(0)
+
 
   // Enforce strictly single active speech bubble
   const setSpeech = useCallback((text: string | null, durationMs = 3800) => {
@@ -173,6 +185,7 @@ export function useMiniAayushBehavior(
 
     const markActivity = () => {
       lastActivityRef.current = Date.now()
+      if (isDraggingRef.current) return
       setState((prev) => {
         if (prev.isSleeping) {
           setSpeech("i'm back awake!", 2200)
@@ -192,9 +205,9 @@ export function useMiniAayushBehavior(
 
     const inactivityCheck = setInterval(() => {
       const elapsed = Date.now() - lastActivityRef.current
-      if (elapsed >= 45000 && !isInteractingRef.current) {
+      if (elapsed >= 45000 && !isInteractingRef.current && !isDraggingRef.current) {
         setState((prev) => {
-          if (!prev.isSleeping) {
+          if (!prev.isSleeping && prev.mood !== 'dragging' && prev.mood !== 'settling') {
             return {
               ...prev,
               isSleeping: true,
@@ -219,7 +232,17 @@ export function useMiniAayushBehavior(
     if (!enabled) return
 
     const roam = () => {
-      if (isInteractingRef.current || state.isSleeping || !state.hasEntered) return
+      if (
+        isInteractingRef.current ||
+        isDraggingRef.current ||
+        state.isSleeping ||
+        !state.hasEntered ||
+        state.isDragging ||
+        state.mood === 'dragging' ||
+        state.mood === 'settling'
+      ) {
+        return
+      }
 
       walkCountRef.current += 1
 
@@ -287,10 +310,161 @@ export function useMiniAayushBehavior(
     return () => {
       if (wanderIntervalRef.current) clearInterval(wanderIntervalRef.current)
     }
-  }, [enabled, state.isSleeping, state.hasEntered, state.posX, windows, triggerFallSequence, setSpeech])
+  }, [
+    enabled,
+    state.isSleeping,
+    state.hasEntered,
+    state.posX,
+    state.isDragging,
+    state.mood,
+    windows,
+    triggerFallSequence,
+    setSpeech,
+  ])
+
+  // Drag Interaction: Pointer Down -> Dragging -> Pointer Up -> Settling -> Autonomous
+  const startDrag = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!enabled) return
+
+      isInteractingRef.current = true
+      isDraggingRef.current = true
+      lastPointerXRef.current = clientX
+      lastPointerYRef.current = clientY
+
+      // Cancel any scheduled wander or animation sequences
+      if (animTimeoutRef.current) clearTimeout(animTimeoutRef.current)
+      if (speechTimeoutRef.current) clearTimeout(speechTimeoutRef.current)
+      if (wanderIntervalRef.current) clearInterval(wanderIntervalRef.current)
+
+      // Rare/subtle pickup reaction dialogue (50% chance)
+      const shouldSpeak = Math.random() < 0.55
+      const pickDialogue = shouldSpeak
+        ? PICKUP_DIALOGUE[Math.floor(Math.random() * PICKUP_DIALOGUE.length)]
+        : null
+
+      setState((prev) => ({
+        ...prev,
+        mood: 'dragging',
+        pose: '11-confused',
+        isDragging: true,
+        isSleeping: false,
+        isFalling: false,
+        speech: pickDialogue,
+      }))
+      if (pickDialogue) {
+        speechTimeoutRef.current = setTimeout(() => {
+          setState((p) => (p.speech === pickDialogue ? { ...p, speech: null } : p))
+        }, 1800)
+      }
+    },
+    [enabled]
+  )
+
+  const updateDrag = useCallback((clientX: number, clientY: number) => {
+    if (!isDraggingRef.current) return
+
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1200
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 800
+
+    // Safe horizontal bounds: clamp to 8% - 92%
+    const rawPercent = (clientX / vw) * 100
+    const clampedX = Math.max(8, Math.min(92, rawPercent))
+
+    // Safe vertical lift: from 0 (bottom rail) up to (vh - 160)
+    // Resting pointer baseline is around (vh - 44 - 36)
+    const rawLift = vh - 44 - 36 - clientY
+    const clampedLift = Math.max(0, Math.min(vh - 160, rawLift))
+
+    // Velocity & angular tilt based on pointer movement direction
+    const vx = clientX - lastPointerXRef.current
+    lastPointerXRef.current = clientX
+    lastPointerYRef.current = clientY
+
+    const tilt = Math.max(-14, Math.min(14, vx * 1.1))
+    const facing = vx > 1.5 ? 'right' : vx < -1.5 ? 'left' : undefined
+
+    setState((prev) => ({
+      ...prev,
+      posX: clampedX,
+      dragY: clampedLift,
+      tilt,
+      facing: facing || prev.facing,
+    }))
+  }, [])
+
+  const endDrag = useCallback(() => {
+    if (!isDraggingRef.current) return
+    isDraggingRef.current = false
+
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1200
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 800
+
+    // Check safe zones against blocking windows at the bottom rail
+    const blockingWindows = windows.filter(
+      (w) => !w.minimized && w.y + w.h > vh - 220
+    )
+
+    let finalX = state.posX
+    if (blockingWindows.length > 0) {
+      const win = blockingWindows[0]
+      const winMin = (win.x / vw) * 100
+      const winMax = ((win.x + win.w) / vw) * 100
+      if (finalX >= winMin - 4 && finalX <= winMax + 4) {
+        // Nudge gently to nearest side of window cove
+        finalX =
+          Math.abs(finalX - winMin) < Math.abs(finalX - winMax)
+            ? Math.max(8, winMin - 8)
+            : Math.min(92, winMax + 8)
+      }
+    }
+
+    // Step 1: Trigger physical drop to floor & landing pose
+    setState((prev) => ({
+      ...prev,
+      posX: finalX,
+      dragY: 0, // initiates gravity spring to ground
+      tilt: 0,
+      mood: 'settling',
+      pose: '07-getup', // landing crouch/recovery
+      isDragging: false,
+    }))
+
+    // Subtle landing dialogue (65% chance)
+    if (Math.random() < 0.65) {
+      const settleText =
+        SETTLE_DIALOGUE[Math.floor(Math.random() * SETTLE_DIALOGUE.length)]
+      setSpeech(settleText, 2500)
+    }
+
+    // Step 2: Transition from landing crouch to chill pose
+    animTimeoutRef.current = setTimeout(() => {
+      setState((prev) =>
+        prev.mood === 'settling' ? { ...prev, pose: '08-chill' } : prev
+      )
+
+      // Step 3: Settle complete, return to autonomous idle with cooldown
+      animTimeoutRef.current = setTimeout(() => {
+        setState((prev) =>
+          prev.mood === 'settling' ? { ...prev, mood: 'idle' } : prev
+        )
+        isInteractingRef.current = false
+        lastActivityRef.current = Date.now()
+      }, 1400)
+    }, 450)
+  }, [state.posX, windows, setSpeech])
 
   // User direct click interaction
   const handleClick = useCallback(() => {
+    if (
+      isDraggingRef.current ||
+      state.isDragging ||
+      state.mood === 'dragging' ||
+      state.mood === 'settling'
+    ) {
+      return
+    }
+
     lastActivityRef.current = Date.now()
 
     if (state.isSleeping) {
@@ -330,12 +504,16 @@ export function useMiniAayushBehavior(
         return prev
       })
     }, 3200)
-  }, [state.isSleeping, state.isFalling, setSpeech])
+  }, [state.isSleeping, state.isFalling, state.isDragging, state.mood, setSpeech])
 
   return {
     state,
     handleClick,
     triggerFallSequence,
     setSpeech,
+    startDrag,
+    updateDrag,
+    endDrag,
   }
 }
+

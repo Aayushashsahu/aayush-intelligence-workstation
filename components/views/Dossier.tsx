@@ -50,19 +50,69 @@ export default function Dossier({ projectId }: { projectId: string }) {
           </span>
         </div>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">{project.title}</h1>
-        <p className="mono mt-2 text-[9px] tk text-[var(--dim)]">
-          SYSTEM ID // {(project.repo || project.id).toUpperCase()}
-        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <p className="mono text-[9px] tk text-[var(--dim)]">
+            SYSTEM ID // {(project.repo || project.id).toUpperCase()}
+          </p>
+          {project.provenance?.map((prov, i) => (
+            <span key={i} className="mono text-[8px] px-2 py-0.5 border border-[var(--line)] text-[var(--dim)] bg-[var(--surface-2)]">
+              {prov}
+            </span>
+          ))}
+        </div>
       </header>
+
+      {/* Case File: Problem & Core Question */}
+      {(project.problem || project.question) && (
+        <section className="panel p-5 border-l-2 border-l-[var(--amber)]">
+          {project.problem && (
+            <div>
+              <Label>THE PROBLEM</Label>
+              <p className="mt-2 text-sm leading-6 text-[var(--text)]">{project.problem}</p>
+            </div>
+          )}
+          {project.question && (
+            <div className={project.problem ? 'mt-4 pt-4 border-t border-[var(--line)]' : ''}>
+              <span className="mono text-[9px] tk-lg text-[var(--amber)]">CORE QUESTION TESTED</span>
+              <p className="mt-1 text-sm font-medium leading-6 text-[var(--amber-hi)]">{project.question}</p>
+            </div>
+          )}
+        </section>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="OBJECTIVE">{project.objective}</Field>
         <Field label="WHY IT EXISTS">{project.why}</Field>
       </div>
 
+      {/* Engineering Approach */}
+      {project.approach && (
+        <section>
+          <Label>ENGINEERING APPROACH</Label>
+          <div className="panel-flat p-4 mt-2 text-sm leading-6 text-[var(--muted)]">
+            {project.approach}
+          </div>
+        </section>
+      )}
+
+      {/* Key Architectural Decisions */}
+      {project.keyDecisions && project.keyDecisions.length > 0 && (
+        <section>
+          <Label>KEY ARCHITECTURAL DECISIONS</Label>
+          <div className="mt-3 space-y-2.5">
+            {project.keyDecisions.map((decision, i) => (
+              <div key={i} className="panel p-3.5 flex gap-3.5 items-start">
+                <span className="mono text-[10px] text-[var(--amber)] font-bold">0{i + 1}</span>
+                <p className="text-xs leading-5 text-[var(--muted)]">{decision}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {project.evidence.length > 0 && (
         <section>
-          <Label>EVIDENCE</Label>
+          <Label>EVIDENCE & VERIFICATION</Label>
           <ul className="mt-3 space-y-2">
             {project.evidence.map((e, i) => (
               <li key={i} className="flex gap-3 text-sm leading-6 text-[var(--muted)]">
@@ -76,7 +126,7 @@ export default function Dossier({ projectId }: { projectId: string }) {
 
       {project.architecture.length > 0 && (
         <section>
-          <Label>ARCHITECTURE</Label>
+          <Label>ARCHITECTURE PIPELINE</Label>
           <div className="mt-3 space-y-2">
             {project.architecture.map((a, i) => (
               <div key={i} className="panel-flat mono p-3 text-[11px] leading-6 text-[var(--muted)]">
@@ -84,6 +134,21 @@ export default function Dossier({ projectId }: { projectId: string }) {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Tradeoffs & Deliberate Constraints */}
+      {project.tradeoffs && project.tradeoffs.length > 0 && (
+        <section>
+          <Label>DELIBERATE TRADEOFFS & BOUNDARIES</Label>
+          <ul className="mt-3 space-y-2">
+            {project.tradeoffs.map((t, i) => (
+              <li key={i} className="panel-flat p-3 text-xs leading-5 text-[var(--muted)] flex gap-2.5 items-start">
+                <span className="text-[var(--amber)] text-[10px] mt-0.5">▲</span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

@@ -55,10 +55,10 @@ export default function Lab() {
           </div>
           <div className="mono flex flex-col gap-1.5 text-[9px] tk text-[var(--dim)]">
             <span className="flex items-center gap-2">
-              <Led tone="amber" pulse /> {experiments.length} EXPERIMENTS
+              <Led tone={experiments.length ? 'amber' : 'idle'} pulse={experiments.length > 0} /> {experiments.length} EXPERIMENTS
             </span>
             <span className="flex items-center gap-2">
-              <Led tone="live" /> {research.length} RESEARCH THREADS
+              <Led tone={research.length ? 'live' : 'idle'} /> {research.length} RESEARCH THREADS
             </span>
             <span className="flex items-center gap-2">
               <Led tone="idle" /> {bundle.thoughts.length} NOTES
@@ -67,9 +67,32 @@ export default function Lab() {
         </div>
       </section>
 
-      {/* Experiments — open questions being worked on */}
-      <section>
-        <div className="mono mb-3 px-1 text-[9px] tk-lg text-[var(--dim)]">EXPERIMENTS</div>
+      {/* When research & lab are empty, display dignified neutral indexed empty-state */}
+      {experiments.length === 0 && research.length === 0 ? (
+        <section className="panel p-8 md:p-12 text-center border-dashed border-[var(--line)]">
+          <div className="mono text-[9px] tk-lg text-[var(--dim)] flex items-center justify-center gap-2">
+            <Led tone="idle" /> WORKSTATION INDEX // LAB & RESEARCH
+          </div>
+          <h3 className="mt-4 text-xl font-semibold tracking-tight text-[var(--text)]">
+            NO PUBLISHED RESEARCH INDEXED
+          </h3>
+          <p className="mt-2 text-sm text-[var(--muted)] max-w-md mx-auto">
+            No research artifacts have been published to this workstation yet.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <button
+              onClick={() => setView('PROJECTS')}
+              className="mono text-[10px] tk-lg px-4 py-2 border border-[var(--line)] bg-[var(--surface-2)] text-[var(--muted)] hover:text-[var(--text)] hover:border-[var(--amber-line)] transition-colors"
+            >
+              BROWSE ACTIVE PROJECT CASE FILES →
+            </button>
+          </div>
+        </section>
+      ) : (
+        <>
+          {/* Experiments — open questions being worked on */}
+          <section>
+            <div className="mono mb-3 px-1 text-[9px] tk-lg text-[var(--dim)]">EXPERIMENTS</div>
         <div className="grid gap-4 lg:grid-cols-2">
           {experiments.map((entry) => (
             <article key={entry.id} className="panel flex flex-col p-5">
@@ -216,6 +239,8 @@ export default function Lab() {
           {!items.length && <Empty>No research threads match this status yet.</Empty>}
         </div>
       </section>
+      </>
+      )}
 
       {/* Thinking space */}
       <section className="panel p-6 md:p-8">

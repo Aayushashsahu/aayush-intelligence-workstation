@@ -21,7 +21,7 @@ import {
 
 const COLL = 'entries'
 const META = 'meta'
-const SEED_VERSION = 2
+const SEED_VERSION = 3
 
 const LIST_TYPES = ['projects', 'research', 'lab', 'security', 'thoughts', 'milestones'] as const
 type ListType = (typeof LIST_TYPES)[number]
@@ -72,10 +72,17 @@ export function slugify(input: string): string {
 async function ensureSeed(db: Db) {
   const meta = db.collection(META)
   const marker: any = await meta.findOne({ _id: 'seed' as any })
-  if (marker && Number(marker.version) >= SEED_VERSION) return
+  const previousVersion = marker ? Number(marker.version) : 0
+
+  if (marker && previousVersion >= SEED_VERSION) return
 
   const entries = db.collection(COLL)
   const now = new Date().toISOString()
+
+  // Migration to v3: Purge any initial fabricated research/lab seed items
+  if (previousVersion > 0 && previousVersion < 3) {
+    await entries.deleteMany({ type: { $in: ['research', 'lab'] } })
+  }
 
   for (const type of LIST_TYPES) {
     const existing = await entries.countDocuments({ type })

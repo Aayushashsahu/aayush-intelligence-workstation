@@ -102,7 +102,11 @@ export default function Command() {
             <div className="mt-5 space-y-3.5">
               <StatusRow label="COMMAND" value="ONLINE" tone="live" />
               <StatusRow label="CORTEX" value="STANDBY" tone="amber" />
-              <StatusRow label="LAB" value={`${contentCounts.lab + contentCounts.research} THREADS`} tone="live" />
+              <StatusRow
+                label="LAB"
+                value={contentCounts.lab + contentCounts.research > 0 ? `${contentCounts.lab + contentCounts.research} THREADS` : 'INDEXED · 0 THREADS'}
+                tone={contentCounts.lab + contentCounts.research > 0 ? 'live' : 'idle'}
+              />
               <StatusRow
                 label="GITHUB"
                 value={syncPhase === 'ERROR' ? 'DEGRADED' : connected ? 'CONNECTED' : 'LINKING'}
@@ -122,6 +126,51 @@ export default function Command() {
               CONSULT CORTEX
               <ChevronRight size={12} />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Storytelling Triad: BUILD · THINK · INVESTIGATE */}
+      <section className="grid gap-4 md:grid-cols-3">
+        <div className="panel p-5">
+          <div className="mono flex items-center justify-between text-[9px] tk text-[var(--amber)]">
+            <span>01 // SYSTEMS</span>
+            <Led tone="live" />
+          </div>
+          <h3 className="mt-3 text-base font-semibold text-[var(--text)]">BUILD</h3>
+          <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+            Production intelligence systems designed to run deterministically. Local inference engines, fail-closed release gates, and offline hardware integration.
+          </p>
+          <div className="mt-4 pt-3 border-t border-[var(--line)] mono text-[8px] tk text-[var(--dim)]">
+            SYSTEMS: AEGIS · E.D.I.T.H. · CAREER OS
+          </div>
+        </div>
+
+        <div className="panel p-5">
+          <div className="mono flex items-center justify-between text-[9px] tk text-[var(--amber)]">
+            <span>02 // REASONING</span>
+            <Led tone="amber" pulse />
+          </div>
+          <h3 className="mt-3 text-base font-semibold text-[var(--text)]">THINK</h3>
+          <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+            Analytical rigor over hype. Treating model outputs as probabilistic observations that require verifiable semantic truth rather than blind trust.
+          </p>
+          <div className="mt-4 pt-3 border-t border-[var(--line)] mono text-[8px] tk text-[var(--dim)]">
+            FOCUS: CORTEX · GRAPH RAG · DETERMINISTIC GATES
+          </div>
+        </div>
+
+        <div className="panel p-5">
+          <div className="mono flex items-center justify-between text-[9px] tk text-[var(--amber)]">
+            <span>03 // SECURITY & EVIDENCE</span>
+            <Led tone="live" />
+          </div>
+          <h3 className="mt-3 text-base font-semibold text-[var(--text)]">INVESTIGATE</h3>
+          <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+            Digital forensics, trust boundaries, and incident response. Bounding automated agent authority so every visible action has traceable provenance.
+          </p>
+          <div className="mt-4 pt-3 border-t border-[var(--line)] mono text-[8px] tk text-[var(--dim)]">
+            FOCUS: SENTINELFORGE · DFIR · AUDIT TRAILS
           </div>
         </div>
       </section>

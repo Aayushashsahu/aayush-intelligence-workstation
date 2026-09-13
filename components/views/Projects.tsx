@@ -37,12 +37,11 @@ export default function Projects() {
           <div>
             <Label>
               <FolderGit2 size={13} className="amber-pure" />
-              SYSTEMS ARCHIVE // LIVE INDEX
+              ENGINEERING CASE FILES // SYSTEMS INDEX
             </Label>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Built systems, not cards.</h2>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Engineered systems, verifiable evidence.</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              Every non-fork public repository is indexed automatically. Curated dossiers carry the reasoning; new
-              repositories appear on their own the moment they are pushed.
+              Structured technical case files detailing problem architectures, critical decisions, verification guarantees, and live GitHub telemetry.
             </p>
           </div>
           <div className="flex items-center gap-2 border border-[var(--line)] bg-[rgba(0,0,0,.25)] px-3">
@@ -100,9 +99,9 @@ export default function Projects() {
             </div>
 
             <div className="mono mt-5 flex items-center justify-between border-t border-[var(--line)] pt-4 text-[9px] tk">
-              <span className="text-[var(--dim)]">{d.repo ? 'REPO LINKED' : 'DOSSIER ONLY'}</span>
+              <span className="text-[var(--dim)]">{d.problem ? 'CASE FILE' : d.repo ? 'REPO LINKED' : 'DOSSIER'}</span>
               <span className="flex items-center gap-1 text-[var(--amber)]">
-                OPEN DOSSIER <ChevronRight size={11} className="transition group-hover:translate-x-0.5" />
+                OPEN CASE FILE <ChevronRight size={11} className="transition group-hover:translate-x-0.5" />
               </span>
             </div>
           </button>

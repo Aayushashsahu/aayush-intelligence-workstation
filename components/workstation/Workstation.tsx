@@ -5,7 +5,7 @@ import { LayoutGrid, RefreshCw, TerminalSquare } from 'lucide-react'
 import { useWorkstation, WorkstationProvider } from '@/components/workstation/store'
 import { ContentProvider, useContentStore } from '@/components/workstation/ContentProvider'
 import WindowFrame from '@/components/workstation/Window'
-import Companion from '@/components/workstation/Companion'
+import MiniAayush from '@/components/workstation/mini-aayush/MiniAayush'
 import { ICONS, VIEW_COMPONENTS } from '@/components/views/registry'
 import { VIEWS } from '@/lib/views'
 import { Led } from '@/components/ui/Primitives'
@@ -46,27 +46,19 @@ function Shell() {
   const contentStore = useContentStore()
 
   const [booted, setBooted] = useState(false)
-  const [skip, setSkip] = useState(false)
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduced) {
       setBooted(true)
-      return
     }
-    const t = setTimeout(() => setBooted(true), 1500)
-    return () => clearTimeout(t)
   }, [])
-
-  useEffect(() => {
-    if (skip) setBooted(true)
-  }, [skip])
 
   const ActiveView = VIEW_COMPONENTS[view]
   const connected = Boolean(github && !github?.error)
   const syncing = !['IDLE', 'COMPLETE', 'ERROR'].includes(syncPhase)
 
-  if (!booted) return <Boot onSkip={() => setSkip(true)} />
+  if (!booted) return <Boot onComplete={() => setBooted(true)} />
 
   return (
     <div className="min-h-dvh pb-16">
@@ -203,7 +195,7 @@ function Shell() {
         <WindowFrame key={w.id} win={w} />
       ))}
 
-      <Companion />
+      <MiniAayush />
       {isMobile && <div className="h-10" />}
     </div>
   )
@@ -246,6 +238,10 @@ function Taskbar() {
         </button>
 
         <div className="mono hidden items-center gap-3 text-[9px] tk text-[var(--dim)] md:flex">
+          <span className="flex items-center gap-1.5">
+            <Led tone="live" />
+            HOST // <span className="text-[var(--text)]">MINI AAYUSH</span>
+          </span>
           <span>
             MODE // <span className="text-[var(--amber)]">{mode}</span>
           </span>
@@ -274,44 +270,130 @@ function Clock() {
 }
 
 const BOOT_LINES = [
-  'POST · intelligence workstation',
+  'POST // intelligence workstation',
   'mounting subsystem rail',
   'linking github telemetry',
-  'indexing project dossiers',
-  'waking companion',
-  'session ready',
+  'indexing engineering case files',
+  'spawning host: mini aayush',
 ]
 
-function Boot({ onSkip }: { onSkip: () => void }) {
-  const [n, setN] = useState(0)
+function Boot({ onComplete }: { onComplete: () => void }) {
+  const [step, setStep] = useState(0)
+  const [characterSpoken, setCharacterSpoken] = useState<string | null>(null)
+
   useEffect(() => {
-    const i = setInterval(() => setN((x) => Math.min(BOOT_LINES.length, x + 1)), 220)
-    return () => clearInterval(i)
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        onComplete()
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [onComplete])
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStep((curr) => {
+        if (curr < BOOT_LINES.length) {
+          return curr + 1
+        }
+        clearInterval(timer)
+        return curr
+      })
+    }, 280)
+
+    return () => clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    if (step >= BOOT_LINES.length) {
+      const t1 = setTimeout(() => {
+        setCharacterSpoken("oh. you're here.")
+      }, 250)
+
+      const t2 = setTimeout(() => {
+        setCharacterSpoken("come on, i'll show you around.")
+      }, 1500)
+
+      const t3 = setTimeout(() => {
+        onComplete()
+      }, 2800)
+
+      return () => {
+        clearTimeout(t1)
+        clearTimeout(t2)
+        clearTimeout(t3)
+      }
+    }
+  }, [step, onComplete])
+
   return (
-    <div className="grid min-h-dvh place-items-center p-6">
-      <button
-        onClick={onSkip}
-        aria-label="Skip boot sequence"
-        className="panel w-full max-w-xl p-6 text-left"
+    <div
+      onClick={onComplete}
+      className="grid min-h-dvh place-items-center p-6 bg-[var(--bg)] cursor-pointer select-none"
+      title="Click or press ESC to skip"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="panel relative w-full max-w-xl p-6 md:p-8 text-left border border-[var(--line)] shadow-2xl overflow-hidden"
       >
         <div className="flex items-center justify-between">
-          <span className="mono text-[10px] tk-lg text-[var(--amber)]">AAYUSH // INTELLIGENCE WORKSTATION</span>
-          <span className="mono text-[9px] tk text-[var(--dim)]">BOOT</span>
+          <span className="mono text-[10px] tk-lg text-[var(--amber)] flex items-center gap-2">
+            <Led tone="amber" pulse /> AAYUSH // INTELLIGENCE WORKSTATION
+          </span>
+          <span className="mono text-[9px] tk text-[var(--dim)]">SYSTEM INIT</span>
         </div>
-        <div className="mono mt-6 space-y-2 text-[11px] text-[var(--muted)]">
-          {BOOT_LINES.slice(0, n).map((l) => (
+
+        {/* Telemetry lines */}
+        <div className="mono mt-6 space-y-2.5 text-[11px] text-[var(--muted)]">
+          {BOOT_LINES.slice(0, step).map((l, idx) => (
             <div key={l} className="flex items-center justify-between">
-              <span>{l}</span>
-              <span className="text-[var(--led)]">OK</span>
+              <span className={idx === step - 1 ? 'text-[var(--text)]' : ''}>{l}</span>
+              <span className="text-[var(--led)] mono text-[10px]">OK</span>
             </div>
           ))}
         </div>
+
+        {/* Mini Aayush Appearance during boot */}
+        {step >= BOOT_LINES.length && (
+          <div className="mt-6 pt-6 border-t border-[var(--line)] flex items-center gap-4 animate-in fade-in duration-300">
+            <div className="relative flex-none">
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full bg-black/60 blur-[1px]" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/mini-aayush/01-greet.png"
+                alt="Mini Aayush"
+                className="h-20 w-auto object-contain drop-shadow-md"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="mono text-[8px] tk text-[var(--amber)] mb-1 flex items-center gap-1.5">
+                <Led tone="live" /> MINI AAYUSH // WORKSTATION HOST
+              </div>
+              <div className="panel-flat p-3 text-sm text-[var(--text)] border-l-2 border-l-[var(--amber)]">
+                {characterSpoken || '...'}
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 progress-track">
-          <div className="progress-fill" style={{ width: `${(n / BOOT_LINES.length) * 100}%` }} />
+          <div
+            className="progress-fill transition-all duration-300"
+            style={{ width: `${Math.min(100, (step / BOOT_LINES.length) * 100)}%` }}
+          />
         </div>
-        <div className="mono mt-3 text-[9px] tk text-[var(--dim)]">CLICK OR PRESS ENTER TO SKIP</div>
-      </button>
+
+        <div className="mono mt-4 flex items-center justify-between text-[9px] tk text-[var(--dim)]">
+          <span>PRESS [ESC] OR CLICK ANYWHERE TO ENTER</span>
+          <button
+            onClick={onComplete}
+            className="hover:text-[var(--amber)] transition-colors underline"
+          >
+            SKIP →
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

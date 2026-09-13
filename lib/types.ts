@@ -126,6 +126,13 @@ export type Project = {
   notes?: string
   createdAt?: string
   updatedAt?: string
+  /* Engineering Case File extensions */
+  problem?: string
+  question?: string
+  approach?: string
+  keyDecisions?: string[]
+  tradeoffs?: string[]
+  provenance?: string[]
 }
 
 export type Research = {

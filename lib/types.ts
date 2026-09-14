@@ -280,7 +280,7 @@ export type AdminBundle = {
 
 export type Mode = 'BUILD' | 'ANALYZE' | 'INVESTIGATE' | 'EXPLORE' | 'FOUNDER'
 
-export type ViewId = 'COMMAND' | 'CORTEX' | 'LAB' | 'PROJECTS' | 'GITHUB' | 'SECURITY' | 'FOUNDER'
+export type ViewId = 'COMMAND' | 'CORTEX' | 'MAP' | 'LAB' | 'PROJECTS' | 'GITHUB' | 'SECURITY' | 'FOUNDER'
 
 export type CompanionState = 'IDLE' | 'THINKING' | 'READING' | 'EXCITED' | 'SLEEPING' | 'INVESTIGATING' | 'ALERT'
 

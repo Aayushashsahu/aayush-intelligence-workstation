@@ -1,13 +1,14 @@
 import type { ViewId } from '@/lib/types'
 
 export const SUBSYSTEM_DIALOGUE: Record<ViewId, string> = {
-  COMMAND: 'welcome to my workstation. this is the live telemetry and systems overview.',
-  CORTEX: "that's cortex. ask it anything about my architecture, decisions, or fit.",
-  PROJECTS: 'these are my engineering case files. real problems, fail-closed verification, no hand-waving.',
-  LAB: 'the lab index is clean right now. research artifacts will publish here directly from my control room.',
-  SECURITY: 'authority boundaries, incident response, and dfir investigation cases.',
-  FOUNDER: 'turning technical systems into real products and ventures.',
-  GITHUB: 'live graphql contribution data directly from my github profile.',
+  COMMAND: 'command center online.',
+  CORTEX: "that's the brain.",
+  MAP: 'everything connects here.',
+  PROJECTS: 'this is where the receipts are.',
+  GITHUB: 'checking the commits?',
+  FOUNDER: 'the strategic layer.',
+  LAB: 'waiting on validated research.',
+  SECURITY: 'defensive boundary active.',
 }
 
 export const CLICK_REACTIONS: string[] = [

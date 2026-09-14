@@ -1,6 +1,6 @@
 'use client'
 
-import { Rocket, ArrowUpRight } from 'lucide-react'
+import { Rocket, ArrowUpRight, Network } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { useContent } from '@/components/workstation/ContentProvider'
 import { Chip, Field, Label, Led } from '@/components/ui/Primitives'
@@ -158,9 +158,15 @@ export default function Founder() {
               </button>
             ))}
           </div>
-          <button onClick={() => setView('CORTEX')} className="btn btn-amber mt-5 w-full justify-center">
-            ASK CORTEX ABOUT THE FOUNDER WORK
-          </button>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <button onClick={() => setView('CORTEX')} className="btn btn-amber flex-1 justify-center">
+              ASK CORTEX ABOUT FOUNDER WORK
+            </button>
+            <button onClick={() => setView('MAP')} className="btn flex items-center gap-1.5">
+              <Network size={12} />
+              SYSTEM MAP
+            </button>
+          </div>
         </div>
       </section>
 

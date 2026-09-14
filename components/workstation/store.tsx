@@ -64,6 +64,10 @@ type Ctx = {
   cortexQuery: string | null
   askCortex: (q: string) => void
   clearCortexQuery: () => void
+
+  recruiterOpen: boolean
+  openRecruiter: () => void
+  closeRecruiter: () => void
 }
 
 const WorkstationContext = createContext<Ctx | null>(null)
@@ -115,6 +119,10 @@ export function WorkstationProvider({
   const revertRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [cortexQuery, setCortexQuery] = useState<string | null>(null)
+  const [recruiterOpen, setRecruiterOpen] = useState(false)
+
+  const openRecruiter = useCallback(() => setRecruiterOpen(true), [])
+  const closeRecruiter = useCallback(() => setRecruiterOpen(false), [])
 
   const notice = useCallback((state: CompanionState, activity: string, ttl = 3600) => {
     setCompanion({ state, activity })
@@ -384,6 +392,9 @@ export function WorkstationProvider({
     cortexQuery,
     askCortex,
     clearCortexQuery,
+    recruiterOpen,
+    openRecruiter,
+    closeRecruiter,
   }
 
   return <WorkstationContext.Provider value={value}>{children}</WorkstationContext.Provider>

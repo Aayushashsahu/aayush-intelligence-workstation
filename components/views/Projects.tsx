@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Search, FolderGit2, ChevronRight } from 'lucide-react'
+import { Search, FolderGit2, ChevronRight, Network } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { useContent } from '@/components/workstation/ContentProvider'
 import { Chip, Empty, Label, Led } from '@/components/ui/Primitives'
@@ -9,7 +9,7 @@ import { archiveDossiers } from '@/lib/content'
 import type { Project } from '@/lib/types'
 
 export default function Projects() {
-  const { github, openDossier } = useWorkstation()
+  const { github, openDossier, setView } = useWorkstation()
   const bundle = useContent()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('ALL')
@@ -44,15 +44,24 @@ export default function Projects() {
               Structured technical case files detailing problem architectures, critical decisions, verification guarantees, and live GitHub telemetry.
             </p>
           </div>
-          <div className="flex items-center gap-2 border border-[var(--line)] bg-[rgba(0,0,0,.25)] px-3">
-            <Search size={14} className="text-[var(--dim)]" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="search systems…"
-              aria-label="Search systems"
-              className="w-52 bg-transparent py-2.5 text-xs outline-none placeholder:text-[var(--dim)]"
-            />
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setView('MAP')}
+              className="btn btn-amber flex items-center gap-1.5"
+            >
+              <Network size={12} />
+              SYSTEM MAP
+            </button>
+            <div className="flex items-center gap-2 border border-[var(--line)] bg-[rgba(0,0,0,.25)] px-3">
+              <Search size={14} className="text-[var(--dim)]" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="search systems…"
+                aria-label="Search systems"
+                className="w-44 bg-transparent py-2.5 text-xs outline-none placeholder:text-[var(--dim)]"
+              />
+            </div>
           </div>
         </div>
 

@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { LayoutGrid, RefreshCw, TerminalSquare } from 'lucide-react'
+import { LayoutGrid, RefreshCw, TerminalSquare, UserCheck, Search } from 'lucide-react'
 import { useWorkstation, WorkstationProvider } from '@/components/workstation/store'
 import { ContentProvider, useContentStore } from '@/components/workstation/ContentProvider'
 import WindowFrame from '@/components/workstation/Window'
 import MiniAayush from '@/components/workstation/mini-aayush/MiniAayush'
+import RecruiterModal from '@/components/workstation/RecruiterModal'
+import CommandPalette from '@/components/workstation/CommandPalette'
 import { ICONS, VIEW_COMPONENTS } from '@/components/views/registry'
 import { VIEWS } from '@/lib/views'
 import { Led } from '@/components/ui/Primitives'
@@ -42,23 +44,50 @@ function Shell() {
     openTerminal,
     tileWindows,
     isMobile,
+    recruiterOpen,
+    openRecruiter,
+    closeRecruiter,
   } = useWorkstation()
   const contentStore = useContentStore()
 
   const [booted, setBooted] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduced) {
+    const alreadyBooted = typeof window !== 'undefined' && sessionStorage.getItem('ai_ws_booted') === '1'
+    if (reduced || alreadyBooted) {
       setBooted(true)
     }
   }, [])
+
+  // Global keyboard listener for Ctrl+K / Cmd+K
+  useEffect(() => {
+    const handleGlobalKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleGlobalKey)
+    return () => window.removeEventListener('keydown', handleGlobalKey)
+  }, [])
+
+  const handleBootComplete = (entryMode?: 'workstation' | 'recruiter') => {
+    try {
+      sessionStorage.setItem('ai_ws_booted', '1')
+    } catch {}
+    setBooted(true)
+    if (entryMode === 'recruiter') {
+      openRecruiter()
+    }
+  }
 
   const ActiveView = VIEW_COMPONENTS[view]
   const connected = Boolean(github && !github?.error)
   const syncing = !['IDLE', 'COMPLETE', 'ERROR'].includes(syncPhase)
 
-  if (!booted) return <Boot onComplete={() => setBooted(true)} />
+  if (!booted) return <Boot onComplete={handleBootComplete} />
 
   return (
     <div className="min-h-dvh pb-16">
@@ -88,20 +117,44 @@ function Shell() {
           </button>
 
           <div className="flex flex-none items-center gap-2">
-            <span className="mono hidden items-center gap-2 text-[9px] tk text-[var(--dim)] lg:flex">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="btn hidden sm:inline-flex"
+              aria-label="Open command palette"
+            >
+              <Search size={11} className="text-[var(--amber)]" />
+              <span className="hidden md:inline">PALETTE</span>
+              <kbd className="mono text-[8px] bg-[var(--surface-2)] border border-[var(--line)] px-1 py-0.2 rounded text-[var(--dim)]">
+                ⌘K
+              </kbd>
+            </button>
+
+            <button
+              onClick={openRecruiter}
+              className="btn btn-amber flex items-center gap-1.5 font-semibold"
+              aria-label="Open recruiter mode"
+            >
+              <UserCheck size={12} />
+              <span className="hidden sm:inline">RECRUITER MODE</span>
+              <span className="mono text-[8px] opacity-80">[60s]</span>
+            </button>
+
+            <span className="mono hidden items-center gap-2 text-[9px] tk text-[var(--dim)] xl:flex">
               <Led tone={syncPhase === 'ERROR' ? 'danger' : connected ? 'live' : 'idle'} pulse={syncing} />
               {connected ? 'GITHUB LIVE' : 'LINKING'}
             </span>
+
             <button
               onClick={() => void sync()}
               disabled={syncing}
-              className="btn hidden sm:inline-flex"
+              className="btn hidden lg:inline-flex"
               aria-label="Sync GitHub telemetry now"
             >
               <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
-              {syncing ? 'SYNCING' : 'SYNC NOW'}
+              {syncing ? 'SYNCING' : 'SYNC'}
             </button>
-            <button onClick={openTerminal} className="btn btn-amber" aria-label="Open system terminal">
+
+            <button onClick={openTerminal} className="btn hidden md:inline-flex" aria-label="Open system terminal">
               <TerminalSquare size={12} />
               TERMINAL
             </button>
@@ -197,6 +250,14 @@ function Shell() {
 
       <MiniAayush />
       {isMobile && <div className="h-10" />}
+
+      {/* ── Global Overlays ──────────────────────────────────────────────── */}
+      <RecruiterModal isOpen={recruiterOpen} onClose={closeRecruiter} />
+      <CommandPalette
+        isOpen={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onOpenRecruiter={openRecruiter}
+      />
     </div>
   )
 }
@@ -277,14 +338,14 @@ const BOOT_LINES = [
   'spawning host: mini aayush',
 ]
 
-function Boot({ onComplete }: { onComplete: () => void }) {
+function Boot({ onComplete }: { onComplete: (entryMode?: 'workstation' | 'recruiter') => void }) {
   const [step, setStep] = useState(0)
-  const [characterSpoken, setCharacterSpoken] = useState<string | null>(null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' || e.key === 'Enter') {
-        onComplete()
+        onComplete('workstation')
       }
     }
     window.addEventListener('keydown', handleKey)
@@ -298,40 +359,19 @@ function Boot({ onComplete }: { onComplete: () => void }) {
           return curr + 1
         }
         clearInterval(timer)
+        setReady(true)
         return curr
       })
-    }, 280)
+    }, 220)
 
     return () => clearInterval(timer)
   }, [])
 
-  useEffect(() => {
-    if (step >= BOOT_LINES.length) {
-      const t1 = setTimeout(() => {
-        setCharacterSpoken("oh. you're here.")
-      }, 250)
-
-      const t2 = setTimeout(() => {
-        setCharacterSpoken("come on, i'll show you around.")
-      }, 1500)
-
-      const t3 = setTimeout(() => {
-        onComplete()
-      }, 2800)
-
-      return () => {
-        clearTimeout(t1)
-        clearTimeout(t2)
-        clearTimeout(t3)
-      }
-    }
-  }, [step, onComplete])
-
   return (
     <div
-      onClick={onComplete}
+      onClick={() => onComplete('workstation')}
       className="grid min-h-dvh place-items-center p-6 bg-[var(--bg)] cursor-pointer select-none"
-      title="Click or press ESC to skip"
+      title="Click or press ESC to enter"
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -339,55 +379,91 @@ function Boot({ onComplete }: { onComplete: () => void }) {
       >
         <div className="flex items-center justify-between">
           <span className="mono text-[10px] tk-lg text-[var(--amber)] flex items-center gap-2">
-            <Led tone="amber" pulse /> AAYUSH // INTELLIGENCE WORKSTATION
+            <Led tone="amber" pulse /> AAYUSH INTELLIGENCE WORKSTATION
           </span>
-          <span className="mono text-[9px] tk text-[var(--dim)]">SYSTEM INIT</span>
+          <span className="mono text-[9px] tk text-[var(--led)]">
+            {ready ? 'SYSTEM ONLINE' : 'SYSTEM INIT'}
+          </span>
         </div>
 
         {/* Telemetry lines */}
-        <div className="mono mt-6 space-y-2.5 text-[11px] text-[var(--muted)]">
-          {BOOT_LINES.slice(0, step).map((l, idx) => (
-            <div key={l} className="flex items-center justify-between">
-              <span className={idx === step - 1 ? 'text-[var(--text)]' : ''}>{l}</span>
-              <span className="text-[var(--led)] mono text-[10px]">OK</span>
-            </div>
-          ))}
-        </div>
+        {!ready && (
+          <div className="mono mt-6 space-y-2 text-[11px] text-[var(--muted)]">
+            {BOOT_LINES.slice(0, step).map((l, idx) => (
+              <div key={l} className="flex items-center justify-between">
+                <span className={idx === step - 1 ? 'text-[var(--text)]' : ''}>{l}</span>
+                <span className="text-[var(--led)] mono text-[10px]">OK</span>
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* Mini Aayush Appearance during boot */}
-        {step >= BOOT_LINES.length && (
-          <div className="mt-6 pt-6 border-t border-[var(--line)] flex items-center gap-4 animate-in fade-in duration-300">
-            <div className="relative flex-none">
-              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full bg-black/60 blur-[1px]" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/mini-aayush/01-greet.png"
-                alt="Mini Aayush"
-                className="h-20 w-auto object-contain drop-shadow-md"
-              />
+        {/* Orientation / First-Run Onboarding Card */}
+        {ready && (
+          <div className="mt-5 space-y-5 animate-in fade-in duration-300">
+            <div className="border-l-2 border-l-[var(--amber)] pl-3.5">
+              <div className="mono text-[9px] tk-lg text-[var(--dim)]">OPERATOR ENVIRONMENT</div>
+              <p className="mt-1 text-sm font-medium leading-6 text-[var(--text)]">
+                A personal operating environment for{' '}
+                <span className="text-[var(--amber)]">AI</span> ·{' '}
+                <span className="text-[var(--text)]">SECURITY</span> ·{' '}
+                <span className="text-[var(--text)]">SYSTEMS</span> ·{' '}
+                <span className="text-[var(--muted)]">PRODUCT</span>
+              </p>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="mono text-[8px] tk text-[var(--amber)] mb-1 flex items-center gap-1.5">
-                <Led tone="live" /> MINI AAYUSH // WORKSTATION HOST
+
+            {/* Mini Aayush Greeting */}
+            <div className="flex items-center gap-4 border-t border-[var(--line)] pt-4">
+              <div className="relative flex-none">
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-10 h-1.5 rounded-full bg-black/60 blur-[1px]" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/mini-aayush/01-greet.png"
+                  alt="Mini Aayush"
+                  className="h-16 w-auto object-contain drop-shadow-md"
+                />
               </div>
-              <div className="panel-flat p-3 text-sm text-[var(--text)] border-l-2 border-l-[var(--amber)]">
-                {characterSpoken || '...'}
+              <div className="flex-1 min-w-0">
+                <div className="mono text-[8px] tk text-[var(--amber)] mb-1 flex items-center gap-1.5">
+                  <Led tone="live" /> MINI AAYUSH // WORKSTATION HOST
+                </div>
+                <div className="panel-flat p-3 text-sm text-[var(--text)] border border-[var(--line)]">
+                  welcome to my workstation.
+                </div>
               </div>
+            </div>
+
+            {/* Dual Clear Choices */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={() => onComplete('workstation')}
+                className="btn btn-amber justify-center py-2.5 text-xs font-semibold"
+              >
+                ENTER WORKSTATION →
+              </button>
+              <button
+                onClick={() => onComplete('recruiter')}
+                className="btn justify-center py-2.5 text-xs font-medium border-[var(--line-2)] hover:border-[var(--amber-line)]"
+              >
+                RECRUITER MODE · 60 SEC
+              </button>
             </div>
           </div>
         )}
 
-        <div className="mt-6 progress-track">
-          <div
-            className="progress-fill transition-all duration-300"
-            style={{ width: `${Math.min(100, (step / BOOT_LINES.length) * 100)}%` }}
-          />
-        </div>
+        {!ready && (
+          <div className="mt-6 progress-track">
+            <div
+              className="progress-fill transition-all duration-300"
+              style={{ width: `${Math.min(100, (step / BOOT_LINES.length) * 100)}%` }}
+            />
+          </div>
+        )}
 
-        <div className="mono mt-4 flex items-center justify-between text-[9px] tk text-[var(--dim)]">
-          <span>PRESS [ESC] OR CLICK ANYWHERE TO ENTER</span>
+        <div className="mono mt-5 flex items-center justify-between text-[8px] tk text-[var(--dim)] border-t border-[var(--line)] pt-3">
+          <span>PRESS [ESC] OR [ENTER] TO PROCEED</span>
           <button
-            onClick={onComplete}
+            onClick={() => onComplete('workstation')}
             className="hover:text-[var(--amber)] transition-colors underline"
           >
             SKIP →

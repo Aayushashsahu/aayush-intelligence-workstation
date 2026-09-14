@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { GitCommitHorizontal, RefreshCw, Activity, ArrowUpRight } from 'lucide-react'
+import { GitCommitHorizontal, RefreshCw, Activity, ArrowUpRight, ScanSearch } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { useContent } from '@/components/workstation/ContentProvider'
 import { Bar, Chip, Label, Led, Stat } from '@/components/ui/Primitives'
@@ -41,7 +41,7 @@ const PHASE_LABEL: Record<string, string> = {
 }
 
 export default function GithubTelemetry() {
-  const { github, sync, syncPhase, lastSync, openDossier } = useWorkstation()
+  const { github, sync, syncPhase, lastSync, openDossier, askCortex } = useWorkstation()
   const bundle = useContent()
 
   const days = github?.contributionDays ?? []
@@ -105,6 +105,27 @@ export default function GithubTelemetry() {
           <Stat label="Active last 90 days" value={github?.activeRepos ?? '—'} />
           <Stat label="Public events" value={github?.events?.length ?? '—'} />
         </div>
+      </section>
+
+      {/* CORTEX Telemetry Reasoning Bridge */}
+      <section className="panel p-4 flex flex-wrap items-center justify-between gap-3 border-[var(--amber-line)] bg-[var(--amber-wash)]">
+        <div>
+          <div className="mono text-[8px] tk-lg text-[var(--amber)]">CORTEX TELEMETRY AUDIT</div>
+          <div className="text-xs font-semibold text-[var(--text)]">
+            Analyze engineering cadence, repository push patterns, and language specialization
+          </div>
+        </div>
+        <button
+          onClick={() =>
+            askCortex(
+              'Analyze Aayush’s GitHub telemetry: recent activity, commit frequency, and active repositories based on live data.',
+            )
+          }
+          className="btn btn-amber flex items-center gap-1.5"
+        >
+          <ScanSearch size={12} />
+          ASK CORTEX ABOUT THIS ACTIVITY
+        </button>
       </section>
 
       {/* Contribution heatmap */}

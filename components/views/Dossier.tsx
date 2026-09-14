@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUpRight, ChevronRight } from 'lucide-react'
+import { ArrowUpRight, ChevronRight, ScanSearch, Network, FolderGit2 } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { useContent } from '@/components/workstation/ContentProvider'
 import { Chip, Field, Label, Led } from '@/components/ui/Primitives'
@@ -23,7 +23,7 @@ function stageIndex(status: Project['status']): number {
 }
 
 export default function Dossier({ projectId }: { projectId: string }) {
-  const { github, openDossier } = useWorkstation()
+  const { github, openDossier, askCortex, setView } = useWorkstation()
   const bundle = useContent()
   const project = findProject(bundle, projectId)
 
@@ -61,6 +61,27 @@ export default function Dossier({ projectId }: { projectId: string }) {
           ))}
         </div>
       </header>
+
+      {/* CORTEX Reasoning Bridge */}
+      <section className="panel p-4 flex flex-wrap items-center justify-between gap-3 border-[var(--amber-line)] bg-[var(--amber-wash)]">
+        <div>
+          <div className="mono text-[8px] tk-lg text-[var(--amber)]">CROSS-SYSTEM REASONING BRIDGE</div>
+          <div className="text-xs font-semibold text-[var(--text)]">
+            Query CORTEX about {project.title}&apos;s architecture, security boundaries, and tradeoffs
+          </div>
+        </div>
+        <button
+          onClick={() =>
+            askCortex(
+              `Analyze the engineering architecture, verification guarantees, and deliberate tradeoffs of ${project.title} (${project.category}).`,
+            )
+          }
+          className="btn btn-amber flex items-center gap-1.5"
+        >
+          <ScanSearch size={12} />
+          ASK CORTEX ABOUT THIS ARCHITECTURE
+        </button>
+      </section>
 
       {/* Case File: Problem & Core Question */}
       {(project.problem || project.question) && (
@@ -124,13 +145,23 @@ export default function Dossier({ projectId }: { projectId: string }) {
         </section>
       )}
 
+      {/* Visual Architecture Pipeline */}
       {project.architecture.length > 0 && (
         <section>
-          <Label>ARCHITECTURE PIPELINE</Label>
-          <div className="mt-3 space-y-2">
+          <div className="flex items-center justify-between mb-3">
+            <Label>VISUAL ARCHITECTURE PIPELINE</Label>
+            <span className="mono text-[8px] tk text-[var(--dim)]">DETERMINISTIC FLOW</span>
+          </div>
+          <div className="space-y-2.5">
             {project.architecture.map((a, i) => (
-              <div key={i} className="panel-flat mono p-3 text-[11px] leading-6 text-[var(--muted)]">
-                {a}
+              <div
+                key={i}
+                className="panel-flat p-3.5 flex items-center gap-3 border-l-2 border-l-[var(--amber)] bg-[rgba(0,0,0,0.35)]"
+              >
+                <span className="mono text-[9px] font-bold text-[var(--amber)] flex-none">
+                  STAGE 0{i + 1}
+                </span>
+                <span className="mono text-xs leading-5 text-[var(--muted)]">{a}</span>
               </div>
             ))}
           </div>
@@ -351,7 +382,7 @@ export default function Dossier({ projectId }: { projectId: string }) {
       )}
 
       <section>
-        <Label>OTHER SYSTEMS</Label>
+        <Label>OTHER SYSTEMS IN ARCHIVE</Label>
         <div className="mt-3 flex flex-wrap gap-2">
           {others.map((p) => (
             <button
@@ -362,6 +393,33 @@ export default function Dossier({ projectId }: { projectId: string }) {
               {p.title}
             </button>
           ))}
+        </div>
+      </section>
+
+      {/* Discovery Loop Actions */}
+      <section className="panel p-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] bg-[var(--surface-2)]">
+        <div className="mono text-[8px] tk text-[var(--dim)]">
+          EXPLORATION // CROSS-SYSTEM DISCOVERY
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setView('MAP')}
+            className="btn"
+          >
+            <Network size={12} />
+            VIEW IN SYSTEM MAP
+          </button>
+          <button
+            onClick={() =>
+              askCortex(
+                `Analyze the architectural tradeoffs and security boundaries of ${project.title}.`,
+              )
+            }
+            className="btn btn-amber"
+          >
+            <ScanSearch size={12} />
+            AUDIT WITH CORTEX
+          </button>
         </div>
       </section>
     </div>

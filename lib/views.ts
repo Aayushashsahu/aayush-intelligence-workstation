@@ -3,6 +3,7 @@ import type { Mode, ViewId } from '@/lib/types'
 export type IconName =
   | 'command'
   | 'cortex'
+  | 'map'
   | 'lab'
   | 'projects'
   | 'github'
@@ -40,8 +41,17 @@ export const VIEWS: ViewMeta[] = [
     windowed: true,
   },
   {
-    id: 'LAB',
+    id: 'MAP',
     code: '03',
+    label: 'SYSTEM MAP',
+    icon: 'map',
+    mode: 'ANALYZE',
+    blurb: 'Interactive architecture graph',
+    windowed: true,
+  },
+  {
+    id: 'LAB',
+    code: '04',
     label: 'LAB',
     icon: 'lab',
     mode: 'EXPLORE',
@@ -50,7 +60,7 @@ export const VIEWS: ViewMeta[] = [
   },
   {
     id: 'PROJECTS',
-    code: '04',
+    code: '05',
     label: 'PROJECTS',
     icon: 'projects',
     mode: 'BUILD',
@@ -59,7 +69,7 @@ export const VIEWS: ViewMeta[] = [
   },
   {
     id: 'GITHUB',
-    code: '05',
+    code: '06',
     label: 'GITHUB',
     icon: 'github',
     mode: 'INVESTIGATE',
@@ -68,7 +78,7 @@ export const VIEWS: ViewMeta[] = [
   },
   {
     id: 'SECURITY',
-    code: '06',
+    code: '07',
     label: 'SECURITY',
     icon: 'security',
     mode: 'INVESTIGATE',
@@ -77,7 +87,7 @@ export const VIEWS: ViewMeta[] = [
   },
   {
     id: 'FOUNDER',
-    code: '07',
+    code: '08',
     label: 'FOUNDER',
     icon: 'founder',
     mode: 'FOUNDER',
@@ -108,6 +118,11 @@ export function resolveView(input: string): ViewId | null {
     analyst: 'CORTEX',
     intelligence: 'CORTEX',
     ask: 'CORTEX',
+    map: 'MAP',
+    systemmap: 'MAP',
+    graph: 'MAP',
+    architecture: 'MAP',
+    systems: 'MAP',
     lab: 'LAB',
     research: 'LAB',
     experiments: 'LAB',

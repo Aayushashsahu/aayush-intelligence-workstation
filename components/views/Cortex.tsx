@@ -325,12 +325,12 @@ function CortexReportCard({ result, timestamp }: { result: CortexResult; timesta
       {!isDeclined && (
         <div className="mt-4 grid gap-4 border-b border-[var(--line)] pb-4 sm:grid-cols-2">
           <div>
-            <div className="mono text-[8px] tk-lg text-[var(--dim)]">PRIMARY SIGNAL</div>
+            <div className="mono text-[8px] tk-lg text-[var(--dim)]">ANALYSIS TYPE</div>
             <div className="mono mt-1 text-sm font-bold text-[var(--text)] tracking-wide">
               {primarySignal}
             </div>
             <div className="mono mt-1.5 flex flex-wrap gap-1.5 text-[8px] tk text-[var(--dim)]">
-              <span>SIGNALS:</span>
+              <span>EVIDENCE DOMAINS:</span>
               {secondarySignals.map((s, idx) => (
                 <span key={idx} className="text-[var(--muted)]">
                   {s}

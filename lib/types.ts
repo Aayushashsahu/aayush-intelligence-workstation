@@ -66,7 +66,19 @@ export type ContentType =
 /** Domains held as a single document rather than a list. */
 export const SINGLETON_TYPES: ContentType[] = ['profile', 'founder']
 
-export type ProjectStatus = 'ACTIVE' | 'MAINTAINED' | 'PROTOTYPE' | 'EXPERIMENT' | 'SHIPPED' | 'ARCHIVED'
+export type ProjectStatus =
+  | 'ACTIVE'
+  | 'BUILDING'
+  | 'EXPERIMENTAL'
+  | 'LOCAL SYSTEM'
+  | 'FOUNDER PROJECT'
+  | 'WORKSTATION CORE'
+  | 'DOCUMENTED'
+  | 'PROTOTYPE'
+  | 'EXPERIMENT'
+  | 'MAINTAINED'
+  | 'SHIPPED'
+  | 'ARCHIVED'
 export type TimelineModel = 'BUILD' | 'RESEARCH'
 export type ResearchStatus =
   | 'EXPLORING'
@@ -110,6 +122,7 @@ export type Project = {
   category: string
   objective: string
   why: string
+  whyItMatters?: string
   evidence: string[]
   architecture: string[]
   techAreas: string[]

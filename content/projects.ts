@@ -20,6 +20,8 @@ export const projects: Project[] = [
     objective: 'Make extraction reliability a verifiable property instead of an assumption.',
     why:
       'An HTTP 200 and a successful parse are observations, not proof. AEGIS is built around treating them that way and pushing the release decision onto deterministic evidence.',
+    whyItMatters:
+      'Demonstrates how deterministic policy boundaries can constrain AI-driven extractions before execution, converting probabilistic model outputs into verifiable release gates.',
     problem:
       'Unstructured extractions routinely return HTTP 200 with valid syntax that is semantically corrupted or hallucinated. Downstream pipelines treat valid schema as truth, causing silent cascading errors.',
     question:
@@ -46,7 +48,7 @@ export const projects: Project[] = [
       'AI proposes; deterministic evidence decides.',
     ],
     techAreas: ['AI reliability', 'Verification', 'Risk controls', 'Fail-closed release'],
-    status: 'ACTIVE',
+    status: 'BUILDING',
     timeline: 'BUILD',
     tags: ['ai', 'reliability', 'verification', 'security'],
     featured: true,
@@ -59,6 +61,8 @@ export const projects: Project[] = [
     objective: 'Automate incident response without handing an AI unchecked authority to act.',
     why:
       'An engineering incident responder that separates evidence, investigation, proposal, approval, verification and guarded external action. Authority boundaries are part of the architecture, not an afterthought.',
+    whyItMatters:
+      'Demonstrates mathematically bounded authority for autonomous agents in high-stakes environments, ensuring no destructive remediation can execute without explicit human approval.',
     problem:
       'Autonomous incident response systems risk taking destructive remediations without human oversight or auditable provenance.',
     question:
@@ -74,7 +78,7 @@ export const projects: Project[] = [
       'Requires human-in-the-loop latency for high-severity actions.',
       'Tooling integration surface requires custom adapter shims for each target provider.',
     ],
-    provenance: ['PROVENANCE // DFIR RESEARCH', 'STATUS // ACTIVE BENCHMARK', 'INTEGRITY // AIR-GAPPED ACTION GATES'],
+    provenance: ['PROVENANCE // DFIR RESEARCH', 'STATUS // EXPERIMENTAL HARNESS', 'INTEGRITY // AIR-GAPPED ACTION GATES'],
     evidence: [
       'Every external action passes through an explicit approval gate.',
       'Proposal and approval are distinct stages held by different actors.',
@@ -84,7 +88,7 @@ export const projects: Project[] = [
       'Evidence → investigation → proposal → approval → verification → guarded external action',
     ],
     techAreas: ['Incident response', 'Authorization boundaries', 'Evidence handling', 'Guarded automation'],
-    status: 'ACTIVE',
+    status: 'EXPERIMENTAL',
     timeline: 'RESEARCH',
     tags: ['security', 'incident-response', 'automation', 'governance'],
     featured: true,
@@ -97,6 +101,8 @@ export const projects: Project[] = [
     objective: 'Run a capable personal assistant entirely on local hardware.',
     why:
       'An offline personal AI that combines local LLMs, vision, RAG, voice, automation and system integration. A system that actually touches the machine rather than a hosted chat window.',
+    whyItMatters:
+      'Demonstrates systems engineering on host hardware with strict local-first privacy: running speech, vision, and local RAG with zero external telemetry egress.',
     problem:
       'Cloud-hosted assistants leak desktop context, fail when offline, and cannot securely manipulate local host resources without exposing private credentials.',
     question:
@@ -112,7 +118,7 @@ export const projects: Project[] = [
       'Requires dedicated local GPU/VRAM resources (minimum 8GB VRAM for 7B/8B parameter models).',
       'Context window is bounded by host memory constraints.',
     ],
-    provenance: ['PROVENANCE // HOST SYSTEM RIG', 'STATUS // ACTIVE WORKSTATION', 'INTEGRITY // ZERO EGRESS RUNTIME'],
+    provenance: ['PROVENANCE // HOST SYSTEM RIG', 'STATUS // LOCAL WORKSTATION', 'INTEGRITY // ZERO EGRESS RUNTIME'],
     evidence: [
       'Local model inference rather than a hosted dependency.',
       'Multiple modalities wired into one assistant: vision, voice, retrieval.',
@@ -120,7 +126,7 @@ export const projects: Project[] = [
     ],
     architecture: ['Local LLMs + vision + RAG + voice + automation', 'FastAPI / WebSockets service layer'],
     techAreas: ['Local LLMs', 'Vision', 'RAG', 'Voice', 'Automation', 'FastAPI / WebSockets'],
-    status: 'ACTIVE',
+    status: 'LOCAL SYSTEM',
     timeline: 'BUILD',
     tags: ['ai', 'local-first', 'multimodal', 'systems'],
     featured: true,
@@ -133,6 +139,8 @@ export const projects: Project[] = [
     objective: 'Turn industrial documents into retrievable, compliance-aware operational knowledge.',
     why:
       'Industrial knowledge intelligence built on document ingestion, knowledge graphs, RAG, compliance tracking and root-cause analysis. Enterprise-oriented product thinking rather than a toy chatbot.',
+    whyItMatters:
+      'Demonstrates knowledge graph indexing over dense regulatory corpora, maintaining clause-level provenance so compliance checks and root-cause analysis remain auditable.',
     problem:
       'Industrial compliance and equipment maintenance documents are fragmented across complex manuals; standard chunked RAG destroys relational context and provenance.',
     question:
@@ -147,7 +155,7 @@ export const projects: Project[] = [
       'High ingestion compute cost during entity extraction and graph building.',
       'Schema evolution requires re-indexing affected subgraphs.',
     ],
-    provenance: ['PROVENANCE // ENTERPRISE CORPUS', 'STATUS // PRODUCTION SHIPPED', 'INTEGRITY // CLAUSE-HASHED TRACEABILITY'],
+    provenance: ['PROVENANCE // HACKATHON BUILD', 'STATUS // DOCUMENTED SYSTEM', 'INTEGRITY // CLAUSE-HASHED TRACEABILITY'],
     evidence: [
       'Document intelligence feeding a structured knowledge graph.',
       'Compliance tracking layered on retrieved knowledge.',
@@ -155,7 +163,7 @@ export const projects: Project[] = [
     ],
     architecture: ['Ingest → knowledge graph → retrieval (RAG) → compliance & RCA surfaces'],
     techAreas: ['Document intelligence', 'Knowledge graphs', 'RAG', 'Compliance tracking', 'Root-cause analysis'],
-    status: 'SHIPPED',
+    status: 'DOCUMENTED',
     timeline: 'RESEARCH',
     tags: ['ai', 'knowledge-graph', 'rag', 'industrial'],
     featured: true,
@@ -168,6 +176,8 @@ export const projects: Project[] = [
     objective: 'Resolve disagreement between transaction records deterministically.',
     why:
       'A focused engineering system for transaction and data reconciliation — clear evidence of backend and data-integrity thinking.',
+    whyItMatters:
+      'Demonstrates transactional correctness and deterministic matching logic, preventing financial ledger drift across asynchronous records.',
     evidence: ['Deterministic matching logic rather than heuristic guessing.'],
     architecture: ['Ingest → match → resolve → report'],
     techAreas: ['Backend', 'Data integrity', 'Matching logic'],
@@ -183,6 +193,8 @@ export const projects: Project[] = [
     objective: 'Turn a personal workflow into a product other people can use.',
     why:
       'A product-oriented system on the founder/operator side of the portfolio: taking a workflow that mattered personally and shaping it into a usable product surface.',
+    whyItMatters:
+      'Demonstrates product architecture turning a complex personal workflow model into an actionable software system.',
     evidence: ['Product framing rather than a one-off script.'],
     architecture: ['Workflow model → product surface'],
     techAreas: ['Product systems', 'Applied AI'],
@@ -198,10 +210,12 @@ export const projects: Project[] = [
     objective: 'Route tasks to the right model or tool instead of defaulting to one.',
     why:
       'An infrastructure-flavoured AI project that reinforces the pattern across the work: orchestration, routing and practical systems rather than only model demos.',
+    whyItMatters:
+      'Demonstrates cost and latency optimization by classifying user intent to route requests dynamically between local and cloud models.',
     evidence: ['Routing and orchestration as the primary concern.'],
     architecture: ['Request → classification → route → response'],
     techAreas: ['Orchestration', 'Model routing', 'Infrastructure'],
-    status: 'ACTIVE',
+    status: 'EXPERIMENTAL',
     timeline: 'BUILD',
     tags: ['ai', 'infrastructure', 'orchestration'],
   },

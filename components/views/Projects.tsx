@@ -37,7 +37,7 @@ export default function Projects() {
           <div>
             <Label>
               <FolderGit2 size={13} className="amber-pure" />
-              ENGINEERING CASE FILES // SYSTEMS INDEX
+              SYSTEM CASE FILES // VERIFIED INDEX
             </Label>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Engineered systems, verifiable evidence.</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
@@ -93,13 +93,19 @@ export default function Projects() {
             <div className="flex items-start justify-between gap-3">
               <span className="mono text-[8px] tk-lg text-[var(--dim)]">{d.category}</span>
               <span className="mono flex items-center gap-1.5 text-[8px] tk text-[var(--muted)]">
-                <Led tone={d.status === 'ARCHIVED' ? 'idle' : d.status === 'ACTIVE' ? 'live' : 'amber'} />
+                <Led tone={d.status === 'ARCHIVED' ? 'idle' : d.status === 'BUILDING' || d.status === 'ACTIVE' ? 'live' : 'amber'} />
                 {d.status}
               </span>
             </div>
 
             <h3 className="mt-4 text-lg font-semibold">{d.title}</h3>
             <p className="clamp-2 mt-2 text-xs leading-5 text-[var(--muted)]">{d.objective}</p>
+
+            {d.whyItMatters && (
+              <p className="clamp-2 mt-2 text-[11px] leading-4 text-[var(--amber-dim)] italic border-l border-[var(--amber-line)] pl-2">
+                Why it matters: {d.whyItMatters}
+              </p>
+            )}
 
             <div className="mt-4 flex flex-wrap gap-1.5">
               {d.techAreas.slice(0, 3).map((t) => (
@@ -108,7 +114,20 @@ export default function Projects() {
             </div>
 
             <div className="mono mt-5 flex items-center justify-between border-t border-[var(--line)] pt-4 text-[9px] tk">
-              <span className="text-[var(--dim)]">{d.problem ? 'CASE FILE' : d.repo ? 'REPO LINKED' : 'DOSSIER'}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--dim)]">{d.problem ? 'CASE FILE' : d.repo ? 'REPO LINKED' : 'DOSSIER'}</span>
+                {d.repo && (
+                  <a
+                    href={`https://github.com/Aayushashsahu/${d.repo}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[var(--dim)] hover:text-[var(--text)] underline decoration-dotted"
+                  >
+                    [REPO]
+                  </a>
+                )}
+              </div>
               <span className="flex items-center gap-1 text-[var(--amber)]">
                 OPEN CASE FILE <ChevronRight size={11} className="transition group-hover:translate-x-0.5" />
               </span>

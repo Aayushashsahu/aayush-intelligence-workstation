@@ -16,7 +16,7 @@ type SystemNode = {
   disciplines: DisciplineId[]
   projectId?: string
   viewId?: 'CORTEX' | 'FOUNDER' | 'GITHUB'
-  status: 'ACTIVE' | 'DEPLOYED' | 'CORE'
+  status: 'BUILDING' | 'EXPERIMENTAL' | 'LOCAL SYSTEM' | 'DOCUMENTED' | 'FOUNDER PROJECT' | 'WORKSTATION CORE'
   summary: string
   architecture: string
   tags: string[]
@@ -36,7 +36,7 @@ const SYSTEMS: SystemNode[] = [
     subtitle: 'FAIL-CLOSED VERIFICATION',
     disciplines: ['ai', 'systems', 'security'],
     projectId: 'aegis',
-    status: 'ACTIVE',
+    status: 'BUILDING',
     summary: 'Autonomous verification boundary enforcing strict deterministic policy gates before untrusted actions execute.',
     architecture: 'Input Stream -> Semantic Parser -> Policy Evaluation Matrix -> Release Gate',
     tags: ['Deterministic Gates', 'Local Inference', 'Boundary Defense'],
@@ -47,8 +47,8 @@ const SYSTEMS: SystemNode[] = [
     subtitle: 'FORENSIC INVESTIGATION',
     disciplines: ['security', 'systems'],
     projectId: 'sentinelforge',
-    status: 'ACTIVE',
-    summary: 'DFIR and incident response orchestration pipeline establishing cryptographic evidence trails.',
+    status: 'EXPERIMENTAL',
+    summary: 'DFIR and incident response orchestration harness establishing cryptographic evidence trails.',
     architecture: 'Telemetry Ingestion -> Anomaly Correlation -> Evidence Sealing -> Audit Log',
     tags: ['DFIR', 'Audit Trails', 'Forensics'],
   },
@@ -58,8 +58,8 @@ const SYSTEMS: SystemNode[] = [
     subtitle: 'TACTICAL AUTOMATION',
     disciplines: ['ai', 'systems'],
     projectId: 'edith',
-    status: 'ACTIVE',
-    summary: 'Context-aware tactical operations framework designed to eliminate friction in engineering workflows.',
+    status: 'LOCAL SYSTEM',
+    summary: 'Context-aware tactical operations framework designed to eliminate friction in engineering workflows on local host.',
     architecture: 'Event Sensor -> Intent Router -> Safety Validator -> Local Runtime Dispatch',
     tags: ['Tactical Ops', 'Safety Verification', 'Automation'],
   },
@@ -69,7 +69,7 @@ const SYSTEMS: SystemNode[] = [
     subtitle: 'LOCAL INTELLIGENCE',
     disciplines: ['ai', 'systems'],
     projectId: 'jarvis',
-    status: 'ACTIVE',
+    status: 'DOCUMENTED',
     summary: 'Self-hosted offline-capable assistant runtime operating on local hardware without cloud dependency.',
     architecture: 'Speech/Text Input -> Local Quantized Model -> Sandboxed Tool Runtime',
     tags: ['Offline Runtime', 'Local LLM', 'Quantization'],
@@ -80,7 +80,7 @@ const SYSTEMS: SystemNode[] = [
     subtitle: 'ENTERPRISE OUTCOMES',
     disciplines: ['product', 'ai'],
     viewId: 'FOUNDER',
-    status: 'DEPLOYED',
+    status: 'FOUNDER PROJECT',
     summary: 'Autonomous AI agents transforming unstructured business workflows into verifiable execution pipelines.',
     architecture: 'Workflow Mapping -> Deterministic Verification -> Outcome Engine',
     tags: ['Autonomous Agents', 'Enterprise Workflows', 'Founder HQ'],
@@ -91,7 +91,7 @@ const SYSTEMS: SystemNode[] = [
     subtitle: 'INTELLIGENCE CORE',
     disciplines: ['ai', 'systems', 'security'],
     viewId: 'CORTEX',
-    status: 'CORE',
+    status: 'WORKSTATION CORE',
     summary: 'Evidence-grounded reasoning engine serving as the central cognitive core of the workstation.',
     architecture: 'Scope Boundary Lock -> Multi-Model Reasoning Fallback -> Evidence Validation',
     tags: ['Multi-Model Fallback', 'Grounding', 'Scope Lock'],
@@ -141,7 +141,7 @@ export default function SystemMap() {
 
           <div className="mono flex flex-wrap items-center gap-2 text-[9px] tk text-[var(--dim)]">
             <span className="flex items-center gap-1.5">
-              <Led tone="live" /> 6 REAL SYSTEMS
+              <Led tone="live" /> 6 VERIFIED SYSTEMS
             </span>
             <span className="text-[var(--line-2)]">·</span>
             <span className="flex items-center gap-1.5">
@@ -168,12 +168,12 @@ export default function SystemMap() {
           {/* Root Operator Hub */}
           <div className="flex flex-col items-center justify-center">
             <div className="mono flex items-center gap-2 text-[9px] tk-lg text-[var(--dim)]">
-              OPERATOR ROOT
+              ENGINEER ROOT
             </div>
             <div className="panel mt-2 border-[var(--amber-line)] bg-[var(--amber-wash)] px-5 py-2.5 text-center shadow-lg">
               <div className="mono text-[8px] tk-lg text-[var(--amber)]">AAYUSH SAHU</div>
               <div className="text-sm font-semibold tracking-wide text-[var(--text)]">
-                SYSTEMS ARCHITECT &amp; BUILDER
+                AI &amp; SYSTEMS ENGINEER
               </div>
             </div>
           </div>
@@ -208,7 +208,7 @@ export default function SystemMap() {
           <div className="relative my-6 h-6 w-full">
             <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-[var(--line-2)] to-transparent" />
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 border border-[var(--line)] bg-[var(--bg-deep)] px-2 py-0.5 mono text-[8px] tk text-[var(--dim)]">
-              DEPLOYED SUBSYSTEMS
+              INDEXED SYSTEMS
             </div>
           </div>
 
@@ -235,7 +235,7 @@ export default function SystemMap() {
                   <div className="flex items-start justify-between gap-2">
                     <span className="mono text-[8px] tk text-[var(--dim)]">{sys.subtitle}</span>
                     <span className="mono flex items-center gap-1.5 text-[8px] tk text-[var(--muted)]">
-                      <Led tone={sys.status === 'CORE' ? 'amber' : 'live'} />
+                      <Led tone={sys.status === 'WORKSTATION CORE' ? 'amber' : 'live'} />
                       {sys.status}
                     </span>
                   </div>

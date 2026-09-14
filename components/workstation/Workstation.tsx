@@ -402,7 +402,7 @@ function Boot({ onComplete }: { onComplete: (entryMode?: 'workstation' | 'recrui
         {ready && (
           <div className="mt-5 space-y-5 animate-in fade-in duration-300">
             <div className="border-l-2 border-l-[var(--amber)] pl-3.5">
-              <div className="mono text-[9px] tk-lg text-[var(--dim)]">OPERATOR ENVIRONMENT</div>
+              <div className="mono text-[9px] tk-lg text-[var(--dim)]">ENGINEERING ENVIRONMENT</div>
               <p className="mt-1 text-sm font-medium leading-6 text-[var(--text)]">
                 A personal operating environment for{' '}
                 <span className="text-[var(--amber)]">AI</span> ·{' '}

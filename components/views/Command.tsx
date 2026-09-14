@@ -81,7 +81,7 @@ export default function Command() {
 
           <div className="mono flex items-center gap-2 text-[9px] tk-lg text-[var(--amber)]">
             <Led tone="amber" pulse />
-            INSTANCE // AAYUSH · WORKSTATION 01 · OPERATING ENVIRONMENT
+            AAYUSH // WORKSTATION 01
           </div>
 
           <h1 className="mt-5 text-5xl font-bold leading-[0.92] tracking-[-0.04em] sm:text-6xl md:text-7xl">
@@ -104,29 +104,43 @@ export default function Command() {
             <span className="font-medium text-[var(--text)]">product</span>.
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-wrap gap-2">
             {profileData.secondary.map((s) => (
               <Chip key={s}>{s}</Chip>
             ))}
           </div>
 
-          {/* Direct Contact Bar */}
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          {/* Primary High-Signal CTAs & Verified Contact */}
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setView('CORTEX')}
+              className="btn btn-amber px-4 py-2 text-xs font-semibold flex items-center gap-2"
+            >
+              <BrainCircuit size={14} />
+              ASK CORTEX
+            </button>
+            <button
+              onClick={() => setView('PROJECTS')}
+              className="btn px-4 py-2 text-xs font-semibold flex items-center gap-2"
+            >
+              <FolderGit2 size={14} className="text-[var(--amber)]" />
+              EXPLORE SYSTEMS
+            </button>
             <a
               href={`mailto:${profileData.email || 'aayushsahu0406@gmail.com'}`}
-              className="mono inline-flex items-center gap-2 text-xs text-[var(--amber-hi)] hover:text-[var(--text)] border border-[var(--amber-line)] px-3 py-1.5 rounded bg-[var(--amber-wash)] transition-all hover:border-[var(--amber)]"
+              className="mono inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] px-2.5 py-1.5 border border-[var(--line)] bg-[var(--surface-2)] transition-colors rounded"
             >
-              <Mail size={13} className="text-[var(--amber)]" />
-              <span>aayushsahu0406@gmail.com</span>
+              <Mail size={12} className="text-[var(--amber)]" />
+              <span>{profileData.email || 'aayushsahu0406@gmail.com'}</span>
             </a>
             <a
               href={profileData.linkedin || 'https://www.linkedin.com/in/aayush-sahu-ai'}
               target="_blank"
               rel="noreferrer"
-              className="mono inline-flex items-center gap-2 text-xs text-[var(--muted)] hover:text-[var(--text)] border border-[var(--line-2)] px-3 py-1.5 rounded bg-[var(--surface-2)] transition-all hover:border-[var(--amber-line)]"
+              className="mono inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] px-2.5 py-1.5 border border-[var(--line)] bg-[var(--surface-2)] transition-colors rounded"
             >
-              <Linkedin size={13} className="text-[var(--amber)]" />
-              <span>linkedin.com/in/aayush-sahu-ai</span>
+              <Linkedin size={12} className="text-[var(--amber)]" />
+              <span>LINKEDIN</span>
             </a>
           </div>
 
@@ -167,7 +181,7 @@ export default function Command() {
 
           <div className="panel p-5 flex flex-col justify-between">
             <div>
-              <Label>OPERATOR READ</Label>
+              <Label>ENGINEERING PROFILE</Label>
               <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
                 The pattern is not one project. It is the combination: AI systems built with deterministic evidence discipline,
                 forensic rigor, and founder execution that turns the machinery into production software.
@@ -187,8 +201,8 @@ export default function Command() {
       {/* 2. System Controls / Exploration Actions */}
       <section className="panel p-5 border-[var(--line-2)] bg-[var(--surface)]">
         <div className="mono text-[9px] tk-lg text-[var(--dim)] mb-3 flex items-center justify-between">
-          <span>SYSTEM CONTROLS // EXPLORATION PROTOCOLS</span>
-          <span className="text-[var(--amber)]">SELECT SUBSYSTEM TO ENGAGE</span>
+          <span>EXPLORE THE WORKSTATION</span>
+          <span className="text-[var(--dim)]">SUBSYSTEM DIRECTORY</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
           <button
@@ -265,13 +279,13 @@ export default function Command() {
         </div>
       </section>
 
-      {/* 3. Active Systems Showcase */}
+      {/* 3. Featured Systems Showcase */}
       <section className="grid gap-4 lg:grid-cols-[1.2fr_.8fr]">
         <div className="panel p-6">
           <div className="flex items-center justify-between">
-            <Label>ACTIVE ENGINEERING SYSTEMS</Label>
+            <Label>FEATURED SYSTEMS</Label>
             <button onClick={() => setView('PROJECTS')} className="mono text-[9px] amber">
-              FULL ARCHIVE <ArrowUpRight size={11} className="ml-1 inline" />
+              ALL SYSTEMS <ArrowUpRight size={11} className="ml-1 inline" />
             </button>
           </div>
 
@@ -284,21 +298,40 @@ export default function Command() {
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="mono text-[8px] tk text-[var(--dim)]">{p.category}</span>
-                    <Led tone="live" />
+                    <span className="mono text-[8px] px-1.5 py-0.5 border border-[var(--line)] bg-[var(--surface-2)] text-[var(--amber-hi)]">
+                      {p.status}
+                    </span>
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <span className="text-sm font-semibold text-[var(--text)]">{p.title}</span>
                   </div>
                   <p className="clamp-2 mt-1.5 text-xs leading-5 text-[var(--muted)]">{p.objective}</p>
+                  {p.whyItMatters && (
+                    <p className="mt-2.5 text-[11px] leading-4 text-[var(--amber-hi)] italic border-l border-[var(--amber-line)] pl-2">
+                      {p.whyItMatters}
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between">
-                  <button
-                    onClick={() => openDossier({ id: p.id, title: p.title, category: p.category })}
-                    className="mono text-[8px] tk text-[var(--amber)] hover:underline flex items-center gap-1"
-                  >
-                    CASE FILE <ChevronRight size={10} className="transition group-hover:translate-x-0.5" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => openDossier({ id: p.id, title: p.title, category: p.category })}
+                      className="mono text-[8px] tk text-[var(--amber)] hover:underline flex items-center gap-1"
+                    >
+                      CASE FILE <ChevronRight size={10} className="transition group-hover:translate-x-0.5" />
+                    </button>
+                    {p.repo && (
+                      <a
+                        href={`https://github.com/Aayushashsahu/${p.repo}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mono text-[8px] text-[var(--dim)] hover:text-[var(--text)]"
+                      >
+                        [REPO]
+                      </a>
+                    )}
+                  </div>
                   <button
                     onClick={() => askCortex(`Analyze the engineering architecture, verification guarantees, and tradeoffs of ${p.title}.`)}
                     className="mono text-[8px] text-[var(--dim)] hover:text-[var(--text)] flex items-center gap-1"

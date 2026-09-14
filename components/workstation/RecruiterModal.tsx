@@ -37,7 +37,7 @@ export default function RecruiterModal({
 
   const handleAuditFit = () => {
     onClose()
-    askCortex('Evaluate Aayush’s technical depth and fit for an AI Systems / Senior Engineering role based on verified evidence.')
+    askCortex('Evaluate Aayush’s technical depth and fit for an AI Systems / Engineering role based on verified evidence.')
   }
 
   const handleOpenProject = (p: any) => {
@@ -68,7 +68,7 @@ export default function RecruiterModal({
                 <Led tone="amber" pulse /> CANDIDATE DOSSIER // RECRUITER MODE [60s READ]
               </div>
               <h2 id="recruiter-modal-title" className="text-xl font-bold tracking-tight text-[var(--text)] md:text-2xl">
-                Aayush Sahu — Senior Engineering Briefing
+                Aayush Sahu — Engineering Briefing
               </h2>
             </div>
           </div>
@@ -89,7 +89,7 @@ export default function RecruiterModal({
         <div className="flex-1 space-y-6 overflow-y-auto p-5 md:p-7">
           {/* Executive Summary & Positioning */}
           <section className="panel-flat p-5 border-l-2 border-l-[var(--amber)]">
-            <div className="mono text-[8px] tk-lg text-[var(--dim)]">CORE POSITIONING</div>
+            <div className="mono text-[8px] tk-lg text-[var(--dim)]">ENGINEERING PROFILE</div>
             <p className="mt-2 text-base font-medium leading-7 text-[var(--text)]">
               Building intelligent, verifiable systems at the intersection of{' '}
               <span className="amber">AI Systems</span>,{' '}
@@ -168,12 +168,19 @@ export default function RecruiterModal({
                   key={p.id}
                   className="panel group flex flex-col p-4 text-left transition hover:border-[var(--amber-line)]"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <span className="mono text-[8px] tk text-[var(--dim)]">{p.category}</span>
-                    <Led tone="live" />
+                    <span className="mono text-[8px] px-1.5 py-0.5 border border-[var(--line)] bg-[var(--surface-2)] text-[var(--muted)]">
+                      {p.status}
+                    </span>
                   </div>
                   <h4 className="mt-2 text-sm font-semibold text-[var(--text)]">{p.title}</h4>
                   <p className="clamp-2 mt-1.5 text-xs leading-5 text-[var(--muted)]">{p.objective}</p>
+                  {p.whyItMatters && (
+                    <p className="mt-2 text-[11px] leading-4 text-[var(--amber-dim)] italic border-l border-[var(--amber-line)] pl-2">
+                      Why it matters: {p.whyItMatters}
+                    </p>
+                  )}
                   <div className="mt-4 pt-3 border-t border-[var(--line)] flex items-center justify-between">
                     <button
                       onClick={() => handleOpenProject(p)}
@@ -214,7 +221,7 @@ export default function RecruiterModal({
           <div className="flex items-center gap-3">
             <button onClick={handleAuditFit} className="btn btn-amber">
               <ScanSearch size={12} />
-              AUDIT FIT WITH CORTEX
+              AUDIT ENGINEERING FIT WITH CORTEX
             </button>
             <a
               href="https://github.com/Aayushashsahu"

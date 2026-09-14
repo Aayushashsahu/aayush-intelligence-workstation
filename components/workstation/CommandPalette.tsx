@@ -171,7 +171,7 @@ export default function CommandPalette({
         id: 'act-recruiter',
         title: 'ENTER RECRUITER MODE [60s READ]',
         category: 'ACTIONS',
-        subtitle: 'Fast-path senior engineering evaluation',
+        subtitle: 'Fast-path engineering evaluation & candidate briefing',
         icon: UserCheck,
         action: () => {
           onClose()
@@ -186,7 +186,7 @@ export default function CommandPalette({
         icon: BrainCircuit,
         action: () => {
           onClose()
-          askCortex('Evaluate Aayush’s technical depth and fit for an AI Systems / Senior Engineering role based on verified evidence.')
+          askCortex('Evaluate Aayush’s technical depth and fit for an AI Systems / Engineering role based on verified evidence.')
         },
       },
       {
@@ -250,16 +250,23 @@ export default function CommandPalette({
     return [...actionItems, ...navItems, ...projectItems]
   }, [bundle.projects, bundle.profile.email, bundle.profile.linkedin, onClose, onOpenRecruiter, openDossier, openTerminal, setView, sync, askCortex])
 
+  const defaultItems = useMemo(() => {
+    const actions = items.filter((i) => i.category === 'ACTIONS')
+    const primaryNav = items.filter((i) => ['nav-command', 'nav-cortex', 'nav-map', 'nav-projects'].includes(i.id))
+    const flagships = items.filter((i) => ['proj-aegis', 'proj-sentinelforge', 'proj-edith'].includes(i.id))
+    return [...actions, ...primaryNav, ...flagships]
+  }, [items])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return items
+    if (!q) return defaultItems
     return items.filter(
       (item) =>
         item.title.toLowerCase().includes(q) ||
         item.category.toLowerCase().includes(q) ||
         item.subtitle?.toLowerCase().includes(q),
     )
-  }, [items, query])
+  }, [items, defaultItems, query])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {

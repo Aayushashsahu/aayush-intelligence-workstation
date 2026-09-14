@@ -13,9 +13,15 @@ const RESEARCH_STAGES = ['DISCOVERY', 'COLLECTION', 'ANALYSIS', 'VALIDATION', 'C
 function stageIndex(status: Project['status']): number {
   const map: Record<Project['status'], number> = {
     EXPERIMENT: 0,
+    EXPERIMENTAL: 0,
     PROTOTYPE: 1,
+    BUILDING: 1,
     ACTIVE: 2,
     MAINTAINED: 2,
+    'LOCAL SYSTEM': 2,
+    DOCUMENTED: 2,
+    'FOUNDER PROJECT': 2,
+    'WORKSTATION CORE': 2,
     SHIPPED: 4,
     ARCHIVED: 4,
   }
@@ -62,27 +68,6 @@ export default function Dossier({ projectId }: { projectId: string }) {
         </div>
       </header>
 
-      {/* CORTEX Reasoning Bridge */}
-      <section className="panel p-4 flex flex-wrap items-center justify-between gap-3 border-[var(--amber-line)] bg-[var(--amber-wash)]">
-        <div>
-          <div className="mono text-[8px] tk-lg text-[var(--amber)]">CROSS-SYSTEM REASONING BRIDGE</div>
-          <div className="text-xs font-semibold text-[var(--text)]">
-            Query CORTEX about {project.title}&apos;s architecture, security boundaries, and tradeoffs
-          </div>
-        </div>
-        <button
-          onClick={() =>
-            askCortex(
-              `Analyze the engineering architecture, verification guarantees, and deliberate tradeoffs of ${project.title} (${project.category}).`,
-            )
-          }
-          className="btn btn-amber flex items-center gap-1.5"
-        >
-          <ScanSearch size={12} />
-          ASK CORTEX ABOUT THIS ARCHITECTURE
-        </button>
-      </section>
-
       {/* Case File: Problem & Core Question */}
       {(project.problem || project.question) && (
         <section className="panel p-5 border-l-2 border-l-[var(--amber)]">
@@ -101,10 +86,21 @@ export default function Dossier({ projectId }: { projectId: string }) {
         </section>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field label="OBJECTIVE">{project.objective}</Field>
-        <Field label="WHY IT EXISTS">{project.why}</Field>
-      </div>
+      {/* Why It Matters */}
+      {(project.whyItMatters || project.why) && (
+        <section className="panel-flat p-4 border-l-2 border-l-[var(--amber)] bg-[rgba(255,138,43,0.04)]">
+          <Label>WHY IT MATTERS</Label>
+          <p className="mt-2 text-sm leading-6 text-[var(--amber-hi)] font-medium">
+            {project.whyItMatters || project.why}
+          </p>
+          {project.objective && (
+            <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+              <span className="mono text-[8px] tk text-[var(--dim)] mr-2">OBJECTIVE:</span>
+              {project.objective}
+            </p>
+          )}
+        </section>
+      )}
 
       {/* Engineering Approach */}
       {project.approach && (
@@ -113,35 +109,6 @@ export default function Dossier({ projectId }: { projectId: string }) {
           <div className="panel-flat p-4 mt-2 text-sm leading-6 text-[var(--muted)]">
             {project.approach}
           </div>
-        </section>
-      )}
-
-      {/* Key Architectural Decisions */}
-      {project.keyDecisions && project.keyDecisions.length > 0 && (
-        <section>
-          <Label>KEY ARCHITECTURAL DECISIONS</Label>
-          <div className="mt-3 space-y-2.5">
-            {project.keyDecisions.map((decision, i) => (
-              <div key={i} className="panel p-3.5 flex gap-3.5 items-start">
-                <span className="mono text-[10px] text-[var(--amber)] font-bold">0{i + 1}</span>
-                <p className="text-xs leading-5 text-[var(--muted)]">{decision}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {project.evidence.length > 0 && (
-        <section>
-          <Label>EVIDENCE & VERIFICATION</Label>
-          <ul className="mt-3 space-y-2">
-            {project.evidence.map((e, i) => (
-              <li key={i} className="flex gap-3 text-sm leading-6 text-[var(--muted)]">
-                <span className="mono flex-none text-[10px] text-[var(--amber)]">{String(i + 1).padStart(2, '0')}</span>
-                <span>{e}</span>
-              </li>
-            ))}
-          </ul>
         </section>
       )}
 
@@ -168,6 +135,21 @@ export default function Dossier({ projectId }: { projectId: string }) {
         </section>
       )}
 
+      {/* Key Architectural Decisions */}
+      {project.keyDecisions && project.keyDecisions.length > 0 && (
+        <section>
+          <Label>KEY ARCHITECTURAL DECISIONS</Label>
+          <div className="mt-3 space-y-2.5">
+            {project.keyDecisions.map((decision, i) => (
+              <div key={i} className="panel p-3.5 flex gap-3.5 items-start">
+                <span className="mono text-[10px] text-[var(--amber)] font-bold">0{i + 1}</span>
+                <p className="text-xs leading-5 text-[var(--muted)]">{decision}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Tradeoffs & Deliberate Constraints */}
       {project.tradeoffs && project.tradeoffs.length > 0 && (
         <section>
@@ -182,6 +164,98 @@ export default function Dossier({ projectId }: { projectId: string }) {
           </ul>
         </section>
       )}
+
+      {/* Evidence & Verification */}
+      {project.evidence.length > 0 && (
+        <section>
+          <Label>EVIDENCE & VERIFICATION</Label>
+          <ul className="mt-3 space-y-2">
+            {project.evidence.map((e, i) => (
+              <li key={i} className="flex gap-3 text-sm leading-6 text-[var(--muted)]">
+                <span className="mono flex-none text-[10px] text-[var(--amber)]">{String(i + 1).padStart(2, '0')}</span>
+                <span>{e}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Proof Layer // Source & Telemetry */}
+      <section className="panel p-5 border border-[var(--line)]">
+        <div className="flex items-center justify-between">
+          <Label>PROOF LAYER // SOURCE &amp; VERIFIED TELEMETRY</Label>
+          <span className="mono text-[8px] tk text-[var(--dim)]">EVIDENCE GROUNDED</span>
+        </div>
+        {repo ? (
+          <div className="mt-3">
+            <div className="mono grid grid-cols-2 gap-3 text-[10px] tk text-[var(--muted)] sm:grid-cols-4">
+              <span>★ {repo.stargazers_count} STARS</span>
+              <span>LANG // {repo.language || 'MULTI'}</span>
+              <span>UPDATED // {new Date(repo.updated_at).toLocaleDateString('en-GB')}</span>
+              <span>STATUS // {repo.archived ? 'ARCHIVED' : 'LIVE'}</span>
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <a
+                href={repo.html_url}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-amber"
+              >
+                <FolderGit2 size={12} />
+                INSPECT REPOSITORY <ArrowUpRight size={12} />
+              </a>
+              {repo.html_url && (
+                <a
+                  href={`${repo.html_url}/commits`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn"
+                >
+                  COMMIT HISTORY <ArrowUpRight size={12} />
+                </a>
+              )}
+            </div>
+          </div>
+        ) : project.link ? (
+          <div className="mt-3">
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-amber"
+            >
+              EXTERNAL REFERENCE <ArrowUpRight size={12} />
+            </a>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-[var(--dim)]">
+            {project.repo
+              ? 'Repository not present in the live index — it may be private, renamed or archived.'
+              : 'No public repository bound to this dossier.'}
+          </p>
+        )}
+      </section>
+
+      {/* CORTEX Reasoning Bridge */}
+      <section className="panel p-4 flex flex-wrap items-center justify-between gap-3 border-[var(--amber-line)] bg-[var(--amber-wash)]">
+        <div>
+          <div className="mono text-[8px] tk-lg text-[var(--amber)]">CROSS-SYSTEM REASONING BRIDGE</div>
+          <div className="text-xs font-semibold text-[var(--text)]">
+            Query CORTEX about {project.title}&apos;s architecture, security boundaries, and tradeoffs
+          </div>
+        </div>
+        <button
+          onClick={() =>
+            askCortex(
+              `Analyze the engineering architecture, verification guarantees, and deliberate tradeoffs of ${project.title} (${project.category}).`,
+            )
+          }
+          className="btn btn-amber flex items-center gap-1.5"
+        >
+          <ScanSearch size={12} />
+          ASK CORTEX ABOUT THIS ARCHITECTURE
+        </button>
+      </section>
 
       <section>
         <Label>TECHNICAL AREAS</Label>
@@ -309,43 +383,7 @@ export default function Dossier({ projectId }: { projectId: string }) {
         </section>
       )}
 
-      {/* Live repository telemetry */}
-      <section className="panel-flat p-4">
-        <Label>REPOSITORY</Label>
-        {repo ? (
-          <div className="mt-3">
-            <div className="mono grid grid-cols-2 gap-3 text-[10px] tk text-[var(--muted)] sm:grid-cols-4">
-              <span>★ {repo.stargazers_count}</span>
-              <span>{repo.language || 'MULTI'}</span>
-              <span>UPDATED {new Date(repo.updated_at).toLocaleDateString('en-GB')}</span>
-              <span>{repo.archived ? 'ARCHIVED' : 'LIVE'}</span>
-            </div>
-            <a
-              href={repo.html_url}
-              target="_blank"
-              rel="noreferrer"
-              className="mono mt-4 inline-flex items-center gap-2 text-[9px] tk amber"
-            >
-              OPEN REPOSITORY <ArrowUpRight size={12} />
-            </a>
-          </div>
-        ) : project.link ? (
-          <a
-            href={project.link}
-            target="_blank"
-            rel="noreferrer"
-            className="mono mt-3 inline-flex items-center gap-2 text-[9px] tk amber"
-          >
-            EXTERNAL REFERENCE <ArrowUpRight size={12} />
-          </a>
-        ) : (
-          <p className="mt-3 text-xs text-[var(--dim)]">
-            {project.repo
-              ? 'Repository not present in the live index — it may be private, renamed or archived.'
-              : 'No public repository bound to this dossier.'}
-          </p>
-        )}
-      </section>
+
 
       {(related.length > 0 || lab.length > 0) && (
         <section className="grid gap-4 md:grid-cols-2">

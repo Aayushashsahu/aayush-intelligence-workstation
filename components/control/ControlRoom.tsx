@@ -288,7 +288,7 @@ export default function ControlRoom({
           <div className="panel p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <span className="mono text-[9px] tk-lg text-[var(--dim)]">
-                {schema.label} // {rows.length} ENTRIES
+                {schema.label} {'//'} {rows.length} ENTRIES
               </span>
               <div className="flex flex-wrap gap-2">
                 <button onClick={reload} className="btn">

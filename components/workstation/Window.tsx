@@ -121,7 +121,7 @@ export default function WindowFrame({ win }: { win: WinState }) {
         >
           <GripVertical size={13} className="flex-none text-[var(--dim)]" aria-hidden />
           <span className="mono truncate text-[10px] tk text-[var(--muted)]">{win.title}</span>
-          <span className="mono hidden flex-none text-[9px] tk text-[var(--dim)] sm:inline">// {win.sub}</span>
+          <span className="mono hidden flex-none text-[9px] tk text-[var(--dim)] sm:inline">{'//'} {win.sub}</span>
         </div>
 
         <div className="flex flex-none items-center gap-0.5">

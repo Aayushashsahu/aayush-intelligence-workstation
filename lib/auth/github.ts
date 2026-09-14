@@ -83,6 +83,42 @@ export function isOwner(identity: { login: string }): boolean {
   return identity.login.trim().toLowerCase() === expected
 }
 
-export function callbackUrl(origin: string): string {
-  return `${origin}/api/auth/github/callback`
+/**
+ * Canonical Application URL.
+ *
+ * In production, this MUST come from process.env.APP_URL so OAuth redirects
+ * are never polluted by arbitrary Host headers or Vercel preview domains.
+ * In local development, falls back to http://localhost:3000 if unset.
+ */
+export function getAppUrl(): string {
+  const raw = process.env.APP_URL?.trim()
+  const isProd = process.env.NODE_ENV === 'production'
+
+  if (!raw) {
+    if (isProd) {
+      console.error(
+        '[OAuth Configuration Error] APP_URL environment variable is missing in production. Set APP_URL=https://aayush-intelligence-workstation.vercel.app',
+      )
+      throw new Error('APP_URL is not configured in production.')
+    }
+    return 'http://localhost:3000'
+  }
+
+  // Normalize URL safely: strip trailing slashes and ensure proper protocol/host format
+  try {
+    const parsed = new URL(raw)
+    const pathname = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/+$/, '')
+    return `${parsed.origin}${pathname}`
+  } catch {
+    return raw.replace(/\/+$/, '')
+  }
+}
+
+/**
+ * Derives the canonical OAuth callback URL safely, avoiding double slashes.
+ * In production, it ALWAYS resolves from APP_URL, ignoring client origins.
+ */
+export function callbackUrl(customBase?: string): string {
+  const base = customBase?.trim() ? customBase.trim().replace(/\/+$/, '') : getAppUrl()
+  return `${base}/api/auth/github/callback`
 }

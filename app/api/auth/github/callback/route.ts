@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { callbackUrl, exchangeCode, fetchGithubIdentity, isOwner, oauthConfigured } from '@/lib/auth/github'
+import { callbackUrl, exchangeCode, fetchGithubIdentity, getAppUrl, isOwner, oauthConfigured } from '@/lib/auth/github'
 import { SESSION_MAX_AGE_S, consumeStateCookie, writeSessionCookie } from '@/lib/auth/session'
 
 export const dynamic = 'force-dynamic'
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   if (!code || !state || !expectedState || state !== expectedState) return opaque()
 
   try {
-    const accessToken = await exchangeCode(code, callbackUrl(url.origin))
+    const accessToken = await exchangeCode(code, callbackUrl())
     const identity = await fetchGithubIdentity(accessToken)
 
     // Authorised but not the owner: refuse and leave no session behind.
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       exp: Date.now() + SESSION_MAX_AGE_S * 1000,
     })
 
-    return NextResponse.redirect(new URL('/control', url.origin))
+    return NextResponse.redirect(new URL('/control', getAppUrl()))
   } catch {
     return opaque()
   }

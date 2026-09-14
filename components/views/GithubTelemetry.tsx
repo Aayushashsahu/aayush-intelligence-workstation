@@ -44,7 +44,7 @@ export default function GithubTelemetry() {
   const { github, sync, syncPhase, lastSync, openDossier, askCortex } = useWorkstation()
   const bundle = useContent()
 
-  const days = github?.contributionDays ?? []
+  const days = useMemo(() => github?.contributionDays ?? [], [github?.contributionDays])
   const weeks = useMemo(() => toWeeks(days), [days])
   const max = useMemo(() => Math.max(1, ...days.map((d) => d.contributionCount)), [days])
   const connected = Boolean(github && !github?.error)

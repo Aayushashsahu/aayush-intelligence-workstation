@@ -248,7 +248,7 @@ export default function CommandPalette({
     }))
 
     return [...actionItems, ...navItems, ...projectItems]
-  }, [bundle.projects, onClose, onOpenRecruiter, openDossier, openTerminal, setView, sync, askCortex])
+  }, [bundle.projects, bundle.profile.email, bundle.profile.linkedin, onClose, onOpenRecruiter, openDossier, openTerminal, setView, sync, askCortex])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()

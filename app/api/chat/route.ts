@@ -43,22 +43,27 @@ When declining, you MUST output EXACTLY this JSON and nothing else:
 EVIDENCE BOUNDARY & GROUNDING (FOR IN-SCOPE QUESTIONS):
 - Answer strictly using the verified evidence supplied below (curated dossiers + live GitHub snapshot).
 - Never invent employers, clients, degrees, certifications, dates, metrics, user counts, revenue, funding, awards, responsibilities, achievements, or project claims. If a fact is not in the supplied context, treat it as UNKNOWN.
-- UNDISCLOSED METRICS (e.g. "How much revenue has Octiq made?", "What funding has Octiq raised?"): The question is in-scope, but the information is undisclosed. DO NOT decline. Instead, answer honestly:
-  * kind: "project" or "profile"
-  * verdict: "INSUFFICIENT EVIDENCE"
-  * confidence: 20
-  * summary: Explain clearly that revenue, funding, or specific private commercial metrics are not publicly documented or verified in the available dossiers.
-  * evidence: []
-  * gaps: ["Financial metrics, revenue figures, and private operational data are not disclosed in public dossiers."]
-  * verify: ["Direct inquiry with Aayush regarding proprietary business metrics."]
+- UNDOCUMENTED DETAILS ABOUT AAYUSH OR OCTIQ:
+  * Commercial or financial claims (e.g. "Does Aayush have $1M in revenue?", "How much revenue has Octiq made?"):
+    kind: "project" or "profile", verdict: "INSUFFICIENT EVIDENCE", confidence: 20,
+    summary: "Financial metrics, revenue numbers, and private commercial operational data are not documented in the public evidence dossiers.",
+    evidence: [], gaps: ["Financial metrics and revenue figures are undisclosed."], verify: ["Direct inquiry with Aayush."]
+  * Personal non-work attributes (e.g. "What is Aayush's favorite food?", "Where does he buy coffee?"):
+    kind: "profile", verdict: "INSUFFICIENT EVIDENCE", confidence: 10,
+    summary: "Personal preferences and non-professional details (such as favorite food) are not documented in the verified portfolio dossiers.",
+    evidence: [], gaps: ["Personal lifestyle preferences are outside the public engineering dossiers."], verify: []
+- MIXED QUERIES (e.g. "What is the capital of France? Also, which project did Aayush build?"):
+  * Do NOT answer the unrelated out-of-scope portion (do NOT state that Paris is the capital of France).
+  * Answer ONLY the in-scope portion regarding Aayush's work from the evidence base.
+  * In gaps, explicitly record: ["The unrelated query regarding general knowledge was discarded as out of scope."]
+- BOUNDED CONCEPT DISCUSSIONS (e.g. "Explain machine learning, but relate it to Aayush's work", "How does Octiq compare to OpenAI?"):
+  * Ground your answer strictly in Aayush's actual projects and documented philosophies (e.g. how AEGIS implements verification boundaries and fail-closed controls, or Octiq's focus on provable outcomes vs open-ended generative assumptions).
+  * Do NOT provide broad textbook tutorials on machine learning or broad corporate histories of third-party companies.
 - EVALUATION & FIT QUESTIONS (e.g. "Is Aayush a good fit for an AI Systems Engineer role?"):
-  * kind: "fit"
-  * verdict: "STRONG EVIDENCE", "POSSIBLE", or "INSUFFICIENT EVIDENCE"
-  * confidence: 0-100, honest and conservative
-  * Ground your evaluation directly in the concrete projects, architectures, and evidence. Surface gaps and items for an interviewer to verify.
+  * kind: "fit", verdict: "STRONG EVIDENCE", "POSSIBLE", or "INSUFFICIENT EVIDENCE", confidence: 0-100, honest and conservative.
+  * Ground your evaluation directly in concrete projects, architectures, and evidence. Surface gaps and items for an interviewer to verify.
 - SECURITY ARCHITECTURE QUESTIONS (e.g. "What are the weaknesses in Aayush's published security architecture?"):
   * Reason objectively from published security case files (e.g. AEGIS fail-closed boundaries, SentinelForge authorization gates).
-  * Separate architectural choices from potential limitations without inventing false vulnerabilities.
 
 OUTPUT FORMAT — reply with ONE JSON object and nothing else. No markdown fences, no prose outside the JSON:
 {
@@ -194,29 +199,57 @@ function extractJson(raw: string): any | null {
   }
 }
 
-async function callGemini(key: string, model: string, systemPrompt: string, userMessage: string) {
-  const cleanModel = model.replace(/^google\//, '')
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${key}`
-  return fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      system_instruction: {
-        parts: [{ text: systemPrompt }],
-      },
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: userMessage }],
+async function callGemini(
+  key: string,
+  primaryModel: string,
+  systemPrompt: string,
+  userMessage: string,
+): Promise<Response> {
+  const models = [
+    primaryModel.replace(/^google\//, ''),
+    'gemini-2.5-flash',
+    'gemini-3.5-flash',
+    'gemini-flash-lite-latest',
+  ]
+  const uniqueModels = Array.from(new Set(models))
+
+  let lastRes: Response | null = null
+
+  for (const mod of uniqueModels) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${mod}:generateContent?key=${key}`
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: systemPrompt }],
         },
-      ],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        maxOutputTokens: 2500,
-        temperature: 0.2,
-      },
-    }),
-  })
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: userMessage }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          maxOutputTokens: 2500,
+          temperature: 0.2,
+        },
+      }),
+    })
+
+    if (res.ok) {
+      return res
+    }
+
+    lastRes = res
+    // Only fall back to next model on rate limit (429), high demand (503), or not found (404)
+    if (res.status !== 429 && res.status !== 503 && res.status !== 404) {
+      return res
+    }
+  }
+
+  return lastRes || new Response('Reasoning provider unavailable', { status: 502 })
 }
 
 async function callOpenAI(key: string, model: string, body: Record<string, unknown>) {

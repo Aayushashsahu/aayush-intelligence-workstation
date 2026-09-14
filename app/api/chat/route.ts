@@ -90,6 +90,8 @@ ${JSON.stringify(
     statement: profile.statement,
     summary: profile.summary,
     disciplines: profile.disciplines,
+    email: profile.email,
+    linkedin: profile.linkedin,
   },
   null,
   1,

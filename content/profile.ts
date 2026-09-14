@@ -34,4 +34,6 @@ export const profile: Profile = {
     'ANALYSIS',
     'AUTOMATION',
   ],
+  email: 'aayushsahu0406@gmail.com',
+  linkedin: 'https://www.linkedin.com/in/aayush-sahu-ai',
 }

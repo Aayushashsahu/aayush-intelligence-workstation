@@ -70,9 +70,19 @@ export default function Terminal() {
         { text: '  ask <question>       route a question to CORTEX' },
         { text: '  sync                 refresh GitHub telemetry' },
         { text: 'SYSTEM', tone: 'amber' },
-        { text: '  status · whoami · projects · github · lab' },
-        { text: '  founder · security · cortex · timeline · octiq' },
+        { text: '  status · whoami · contact · projects · github' },
+        { text: '  lab · founder · security · cortex · timeline · octiq' },
         { text: '  clear                clear this terminal' },
+      ])
+      return
+    }
+
+    if (key === 'contact' || key === 'email' || key === 'linkedin') {
+      push([
+        { text: 'OPERATOR DIRECT CONTACT', tone: 'amber' },
+        { text: `  EMAIL     ${bundle.profile.email || 'aayushsahu0406@gmail.com'}`, tone: 'ok' },
+        { text: `  LINKEDIN  ${bundle.profile.linkedin || 'https://www.linkedin.com/in/aayush-sahu-ai'}`, tone: 'ok' },
+        { text: '  GITHUB    https://github.com/Aayushashsahu', tone: 'dim' },
       ])
       return
     }

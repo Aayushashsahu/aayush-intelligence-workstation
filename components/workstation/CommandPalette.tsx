@@ -16,6 +16,8 @@ import {
   UserCheck,
   ChevronRight,
   X,
+  Mail,
+  Linkedin,
 } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { useContent } from '@/components/workstation/ContentProvider'
@@ -207,6 +209,28 @@ export default function CommandPalette({
         action: () => {
           onClose()
           openTerminal()
+        },
+      },
+      {
+        id: 'act-email',
+        title: 'SEND DIRECT EMAIL // aayushsahu0406@gmail.com',
+        category: 'ACTIONS',
+        subtitle: 'Open default mail client to aayushsahu0406@gmail.com',
+        icon: Mail,
+        action: () => {
+          onClose()
+          window.location.href = `mailto:${bundle.profile.email || 'aayushsahu0406@gmail.com'}`
+        },
+      },
+      {
+        id: 'act-linkedin',
+        title: 'LINKEDIN // PROFILE (aayush-sahu-ai)',
+        category: 'ACTIONS',
+        subtitle: 'Open LinkedIn profile in new tab',
+        icon: Linkedin,
+        action: () => {
+          onClose()
+          window.open(bundle.profile.linkedin || 'https://www.linkedin.com/in/aayush-sahu-ai', '_blank')
         },
       },
     ]

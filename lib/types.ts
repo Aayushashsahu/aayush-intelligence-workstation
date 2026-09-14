@@ -213,6 +213,8 @@ export type Profile = {
   summary: string
   disciplines: string[]
   domains: string[]
+  email?: string
+  linkedin?: string
   updatedAt?: string
 }
 

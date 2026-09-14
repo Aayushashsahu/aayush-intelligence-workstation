@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { X, ArrowUpRight, ScanSearch, CheckCircle2, Shield, Cpu, Layers, GitCommitHorizontal, Mail, FolderGit2 } from 'lucide-react'
+import { X, ArrowUpRight, ScanSearch, CheckCircle2, Shield, Cpu, Layers, GitCommitHorizontal, Mail, FolderGit2, Linkedin } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { useContent } from '@/components/workstation/ContentProvider'
 import { Chip, Label, Led, Stat } from '@/components/ui/Primitives'
@@ -227,12 +227,22 @@ export default function RecruiterModal({
             </a>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <a
-              href="mailto:contact@aayushsahu.com"
+              href={`mailto:${profile.email || 'aayushsahu0406@gmail.com'}`}
               className="mono inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] transition-colors"
             >
-              <Mail size={12} /> DIRECT CONTACT
+              <Mail size={12} className="text-[var(--amber)]" />
+              <span>aayushsahu0406@gmail.com</span>
+            </a>
+            <a
+              href={profile.linkedin || 'https://www.linkedin.com/in/aayush-sahu-ai'}
+              target="_blank"
+              rel="noreferrer"
+              className="mono inline-flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--text)] transition-colors"
+            >
+              <Linkedin size={12} className="text-[var(--amber)]" />
+              <span>LINKEDIN</span>
             </a>
           </div>
         </div>

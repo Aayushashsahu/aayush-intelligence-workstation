@@ -21,7 +21,7 @@ import {
 
 const COLL = 'entries'
 const META = 'meta'
-const SEED_VERSION = 3
+const SEED_VERSION = 4
 
 const LIST_TYPES = ['projects', 'research', 'lab', 'security', 'thoughts', 'milestones'] as const
 type ListType = (typeof LIST_TYPES)[number]
@@ -84,6 +84,20 @@ async function ensureSeed(db: Db) {
     await entries.deleteMany({ type: { $in: ['research', 'lab'] } })
   }
 
+  // Migration to v4: ensure profile gets updated with verified email and linkedin
+  if (previousVersion > 0 && previousVersion < 4) {
+    await entries.updateOne(
+      { type: 'profile' },
+      {
+        $set: {
+          email: seedBundle.profile.email,
+          linkedin: seedBundle.profile.linkedin,
+          updatedAt: now,
+        },
+      },
+    )
+  }
+
   for (const type of LIST_TYPES) {
     const existing = await entries.countDocuments({ type })
     if (existing > 0) continue
@@ -136,8 +150,10 @@ async function readBundle(db: Db, opts: { onlyPublished: boolean }): Promise<Con
     return byOrder(visible as any[])
   }
 
-  const singleton = (type: ContentType) =>
-    docs.find((d: any) => d.type === type) ?? (seedBundle as any)[type]
+  const singleton = (type: ContentType) => {
+    const doc = docs.find((d: any) => d.type === type)
+    return doc ? { ...(seedBundle as any)[type], ...doc } : (seedBundle as any)[type]
+  }
 
   return {
     profile: singleton('profile'),

@@ -12,6 +12,8 @@ import {
   Rocket,
   UserCheck,
   ScanSearch,
+  Mail,
+  Linkedin,
 } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { Bar, Chip, Divider, Label, Led, Stat } from '@/components/ui/Primitives'
@@ -106,6 +108,26 @@ export default function Command() {
             {profileData.secondary.map((s) => (
               <Chip key={s}>{s}</Chip>
             ))}
+          </div>
+
+          {/* Direct Contact Bar */}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <a
+              href={`mailto:${profileData.email || 'aayushsahu0406@gmail.com'}`}
+              className="mono inline-flex items-center gap-2 text-xs text-[var(--amber-hi)] hover:text-[var(--text)] border border-[var(--amber-line)] px-3 py-1.5 rounded bg-[var(--amber-wash)] transition-all hover:border-[var(--amber)]"
+            >
+              <Mail size={13} className="text-[var(--amber)]" />
+              <span>aayushsahu0406@gmail.com</span>
+            </a>
+            <a
+              href={profileData.linkedin || 'https://www.linkedin.com/in/aayush-sahu-ai'}
+              target="_blank"
+              rel="noreferrer"
+              className="mono inline-flex items-center gap-2 text-xs text-[var(--muted)] hover:text-[var(--text)] border border-[var(--line-2)] px-3 py-1.5 rounded bg-[var(--surface-2)] transition-all hover:border-[var(--amber-line)]"
+            >
+              <Linkedin size={13} className="text-[var(--amber)]" />
+              <span>linkedin.com/in/aayush-sahu-ai</span>
+            </a>
           </div>
 
           <div className="mt-8 grid gap-6 border-t border-[var(--line)] pt-6 sm:grid-cols-4">

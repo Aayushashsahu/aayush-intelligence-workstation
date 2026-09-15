@@ -144,14 +144,24 @@ async function readBundle(db: Db, opts: { onlyPublished: boolean }): Promise<Con
   const entries = db.collection(COLL)
   const docs = (await entries.find({}).toArray()).map(strip)
 
+  const docsByType: Record<string, any[]> = Object.create(null)
+  for (const doc of docs) {
+    if (docsByType[doc.type]) {
+      docsByType[doc.type].push(doc)
+    } else {
+      docsByType[doc.type] = [doc]
+    }
+  }
+
   const list = (type: ListType) => {
-    const forType = docs.filter((d: any) => d.type === type)
+    const forType = docsByType[type] || []
     const visible = opts.onlyPublished ? forType.filter(isPublished) : forType
     return byOrder(visible as any[])
   }
 
   const singleton = (type: ContentType) => {
-    const doc = docs.find((d: any) => d.type === type)
+    const arr = docsByType[type]
+    const doc = arr && arr.length > 0 ? arr[0] : undefined
     return doc ? { ...(seedBundle as any)[type], ...doc } : (seedBundle as any)[type]
   }
 

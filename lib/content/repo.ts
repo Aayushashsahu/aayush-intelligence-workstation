@@ -116,17 +116,17 @@ async function ensureSeed(db: Db) {
     )
   }
 
-  for (const type of SINGLETON_TYPES) {
-    const existing = await entries.findOne({ type })
-    if (!existing) {
-      await entries.insertOne({
-        ...(seedBundle as any)[type],
-        type,
-        id: type,
-        createdAt: now,
-        updatedAt: now,
-      })
-    }
+  const existingSingletons = await entries.find({ type: { $in: SINGLETON_TYPES } }).toArray()
+  const existingTypes = new Set(existingSingletons.map((doc: any) => doc.type))
+  const missingSingletons = SINGLETON_TYPES.filter(type => !existingTypes.has(type)).map(type => ({
+    ...(seedBundle as any)[type],
+    type,
+    id: type,
+    createdAt: now,
+    updatedAt: now,
+  }))
+  if (missingSingletons.length > 0) {
+    await entries.insertMany(missingSingletons)
   }
 
   await meta.updateOne(

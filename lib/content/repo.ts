@@ -98,9 +98,10 @@ async function ensureSeed(db: Db) {
     )
   }
 
+  const existingTypes = new Set(await entries.distinct('type'))
+
   for (const type of LIST_TYPES) {
-    const existing = await entries.countDocuments({ type })
-    if (existing > 0) continue
+    if (existingTypes.has(type)) continue
     const seed = byOrder((seedBundle[type] as any[]) || [])
     if (!seed.length) continue
     await entries.insertMany(
@@ -117,8 +118,7 @@ async function ensureSeed(db: Db) {
   }
 
   for (const type of SINGLETON_TYPES) {
-    const existing = await entries.findOne({ type })
-    if (!existing) {
+    if (!existingTypes.has(type)) {
       await entries.insertOne({
         ...(seedBundle as any)[type],
         type,

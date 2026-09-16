@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   CornerDownLeft,
   ScanSearch,
@@ -60,79 +60,81 @@ export default function Cortex() {
   const [scanPhaseIdx, setScanPhaseIdx] = useState(0)
   const bodyRef = useRef<HTMLDivElement>(null)
 
-  const send = async (raw: string) => {
-    const q = raw.trim()
-    if (!q || loading) return
-    setMsg('')
-    const turnId = `q-${Date.now()}`
-    const timeStr = new Date().toLocaleTimeString('en-GB')
+  const send = useCallback(
+    async (raw: string) => {
+      const q = raw.trim()
+      if (!q || loading) return
+      setMsg('')
+      const turnId = `q-${Date.now()}`
+      const timeStr = new Date().toLocaleTimeString('en-GB')
 
-    setTurns((t) => [
-      ...t,
-      { id: turnId, role: 'user', result: { text: q }, timestamp: timeStr },
-    ])
-    setLoading(true)
-    setProgress(0)
-    setScanPhaseIdx(0)
-    notice('THINKING', 'CORTEX REASONING', 4000)
-
-    const timer = setInterval(() => {
-      setProgress((p) => {
-        const next = Math.min(94, p + Math.random() * 18)
-        if (next > 75) setScanPhaseIdx(3)
-        else if (next > 50) setScanPhaseIdx(2)
-        else if (next > 25) setScanPhaseIdx(1)
-        return next
-      })
-    }, 200)
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: q }),
-      })
-      const data = await res.json()
-      setProgress(100)
-      setScanPhaseIdx(4)
       setTurns((t) => [
         ...t,
-        {
-          id: `r-${Date.now()}`,
-          role: 'cortex',
-          result: data as CortexResult,
-          timestamp: new Date().toLocaleTimeString('en-GB'),
-        },
+        { id: turnId, role: 'user', result: { text: q }, timestamp: timeStr },
       ])
-    } catch {
-      setTurns((t) => [
-        ...t,
-        {
-          id: `err-${Date.now()}`,
-          role: 'cortex',
-          result: {
-            verdict: 'UNAVAILABLE',
-            summary:
-              'The intelligence backend did not respond. Live telemetry and static evidence remain fully accessible.',
+      setLoading(true)
+      setProgress(0)
+      setScanPhaseIdx(0)
+      notice('THINKING', 'CORTEX REASONING', 4000)
+
+      const timer = setInterval(() => {
+        setProgress((p) => {
+          const next = Math.min(94, p + Math.random() * 18)
+          if (next > 75) setScanPhaseIdx(3)
+          else if (next > 50) setScanPhaseIdx(2)
+          else if (next > 25) setScanPhaseIdx(1)
+          return next
+        })
+      }, 200)
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: q }),
+        })
+        const data = await res.json()
+        setProgress(100)
+        setScanPhaseIdx(4)
+        setTurns((t) => [
+          ...t,
+          {
+            id: `r-${Date.now()}`,
+            role: 'cortex',
+            result: data as CortexResult,
+            timestamp: new Date().toLocaleTimeString('en-GB'),
           },
-          timestamp: new Date().toLocaleTimeString('en-GB'),
-        },
-      ])
-      notice('ALERT', 'CORTEX BACKEND UNREACHABLE', 4000)
-    } finally {
-      clearInterval(timer)
-      setLoading(false)
-      setTimeout(() => setProgress(0), 500)
-    }
-  }
+        ])
+      } catch {
+        setTurns((t) => [
+          ...t,
+          {
+            id: `err-${Date.now()}`,
+            role: 'cortex',
+            result: {
+              verdict: 'UNAVAILABLE',
+              summary:
+                'The intelligence backend did not respond. Live telemetry and static evidence remain fully accessible.',
+            },
+            timestamp: new Date().toLocaleTimeString('en-GB'),
+          },
+        ])
+        notice('ALERT', 'CORTEX BACKEND UNREACHABLE', 4000)
+      } finally {
+        clearInterval(timer)
+        setLoading(false)
+        setTimeout(() => setProgress(0), 500)
+      }
+    },
+    [loading, notice]
+  )
 
   useEffect(() => {
     if (cortexQuery) {
       clearCortexQuery()
       void send(cortexQuery)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cortexQuery])
+  }, [cortexQuery, clearCortexQuery, send])
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight, behavior: 'smooth' })

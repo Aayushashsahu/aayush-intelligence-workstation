@@ -56,7 +56,7 @@ function eventsFallback(events: GithubEvent[]) {
 }
 
 /** Exact calendar via GitHub GraphQL. Requires a server-side token. */
-async function graphContributions(username: string, token: string) {
+async function graphContributions(username: string, token: string, revalidate: number = 300) {
   const query = `query($login:String!){
     user(login:$login){
       contributionsCollection{
@@ -75,7 +75,7 @@ async function graphContributions(username: string, token: string) {
       'User-Agent': UA,
     },
     body: JSON.stringify({ query, variables: { login: username } }),
-    cache: 'no-store',
+    next: { revalidate },
   })
   if (!res.ok) throw new Error(`GitHub GraphQL ${res.status}`)
   const json = await res.json()
@@ -130,7 +130,7 @@ export async function getGithubData(username: string, opts: { force?: boolean } 
   const token = process.env.GITHUB_TOKEN
   if (token) {
     try {
-      const gql = await graphContributions(username, token)
+      const gql = await graphContributions(username, token, revalidate)
       if (gql.days.length) {
         contributionDays = gql.days
         contributionTotal = gql.total

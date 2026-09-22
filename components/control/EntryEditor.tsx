@@ -7,12 +7,29 @@ import { SCHEMAS, type FieldDef } from '@/components/control/schemas'
 /* path helpers                                                               */
 /* -------------------------------------------------------------------------- */
 
+const pathCache = new Map<string, string[]>()
+
+function getKeysCached(path: string): string[] {
+  let keys = pathCache.get(path)
+  if (!keys) {
+    keys = path.split('.')
+    pathCache.set(path, keys)
+  }
+  return keys
+}
+
 export function getPath(obj: any, path: string): any {
-  return path.split('.').reduce((acc, key) => (acc == null ? undefined : acc[key]), obj)
+  const keys = getKeysCached(path)
+  let acc = obj
+  for (let i = 0; i < keys.length; i++) {
+    if (acc == null) return undefined
+    acc = acc[keys[i]]
+  }
+  return acc
 }
 
 function setPath(obj: any, path: string, value: any) {
-  const keys = path.split('.')
+  const keys = getKeysCached(path)
   const clone = { ...(obj || {}) }
   let cursor = clone
   for (let i = 0; i < keys.length - 1; i += 1) {

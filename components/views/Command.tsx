@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import {
   ArrowUpRight,
   ChevronRight,
@@ -67,7 +68,9 @@ export default function Command() {
   const featured = featuredProjects(bundle)
   const recent = (github?.events ?? []).slice(0, 6)
   const languages = github?.languages ?? []
-  const recentCommits = (github?.events ?? []).reduce((total, e) => total + (e.commits ?? 0), 0)
+  const recentCommits = useMemo(() => {
+    return (github?.events ?? []).reduce((total, e) => total + (e.commits ?? 0), 0)
+  }, [github?.events])
 
   return (
     <div className="space-y-4">

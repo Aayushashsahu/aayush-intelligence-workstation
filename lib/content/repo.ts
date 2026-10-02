@@ -98,36 +98,40 @@ async function ensureSeed(db: Db) {
     )
   }
 
-  for (const type of LIST_TYPES) {
-    const existing = await entries.countDocuments({ type })
-    if (existing > 0) continue
-    const seed = byOrder((seedBundle[type] as any[]) || [])
-    if (!seed.length) continue
-    await entries.insertMany(
-      seed.map((entry, index) => ({
-        ...entry,
-        type,
-        id: entry.id || `${type}-${index + 1}`,
-        published: entry.published !== false,
-        order: typeof entry.order === 'number' ? entry.order : index,
-        createdAt: entry.createdAt || now,
-        updatedAt: now,
-      })),
-    )
-  }
+  await Promise.all(
+    LIST_TYPES.map(async (type) => {
+      const existing = await entries.countDocuments({ type })
+      if (existing > 0) return
+      const seed = byOrder((seedBundle[type] as any[]) || [])
+      if (!seed.length) return
+      await entries.insertMany(
+        seed.map((entry, index) => ({
+          ...entry,
+          type,
+          id: entry.id || `${type}-${index + 1}`,
+          published: entry.published !== false,
+          order: typeof entry.order === 'number' ? entry.order : index,
+          createdAt: entry.createdAt || now,
+          updatedAt: now,
+        })),
+      )
+    }),
+  )
 
-  for (const type of SINGLETON_TYPES) {
-    const existing = await entries.findOne({ type })
-    if (!existing) {
-      await entries.insertOne({
-        ...(seedBundle as any)[type],
-        type,
-        id: type,
-        createdAt: now,
-        updatedAt: now,
-      })
-    }
-  }
+  await Promise.all(
+    SINGLETON_TYPES.map(async (type) => {
+      const existing = await entries.findOne({ type })
+      if (!existing) {
+        await entries.insertOne({
+          ...(seedBundle as any)[type],
+          type,
+          id: type,
+          createdAt: now,
+          updatedAt: now,
+        })
+      }
+    }),
+  )
 
   await meta.updateOne(
     { _id: 'seed' as any },

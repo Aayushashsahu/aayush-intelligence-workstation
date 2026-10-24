@@ -121,6 +121,20 @@ export default function SystemMap() {
     }
   }
 
+  const handleOpenCaseFile = () => {
+    if (!activeSystem.projectId) return
+    const proj = findProject(bundle, activeSystem.projectId)
+    if (proj) openDossier({ id: proj.id, title: proj.title, category: proj.category })
+  }
+
+  const handleEnterSubsystem = () => {
+    if (activeSystem.viewId) setView(activeSystem.viewId)
+  }
+
+  const handleAskCortex = () => {
+    askCortex(`Analyze the engineering architecture, verification guarantees, and tradeoffs of ${activeSystem.name}.`)
+  }
+
   return (
     <div className="space-y-4">
       <section className="panel p-6 md:p-8">
@@ -314,10 +328,7 @@ export default function SystemMap() {
           <div className="mt-auto pt-8 space-y-2.5">
             {activeSystem.projectId && (
               <button
-                onClick={() => {
-                  const proj = findProject(bundle, activeSystem.projectId!)
-                  if (proj) openDossier({ id: proj.id, title: proj.title, category: proj.category })
-                }}
+                onClick={handleOpenCaseFile}
                 className="btn btn-amber w-full justify-center"
               >
                 <FolderGit2 size={12} />
@@ -327,7 +338,7 @@ export default function SystemMap() {
 
             {activeSystem.viewId && (
               <button
-                onClick={() => setView(activeSystem.viewId!)}
+                onClick={handleEnterSubsystem}
                 className="btn btn-amber w-full justify-center"
               >
                 ENTER {activeSystem.viewId} SUBSYSTEM
@@ -335,9 +346,7 @@ export default function SystemMap() {
             )}
 
             <button
-              onClick={() =>
-                askCortex(`Analyze the engineering architecture, verification guarantees, and tradeoffs of ${activeSystem.name}.`)
-              }
+              onClick={handleAskCortex}
               className="btn w-full justify-center"
             >
               <ScanSearch size={12} />

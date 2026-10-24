@@ -7,7 +7,7 @@ import { useContent } from '@/components/workstation/ContentProvider'
 import { Chip, Empty, Label, Led } from '@/components/ui/Primitives'
 import { findProject } from '@/lib/content'
 import { thoughtTopics } from '@/lib/taxonomy'
-import type { LabStatus, ResearchStatus } from '@/lib/types'
+import type { ContentBundle, LabStatus, ResearchStatus } from '@/lib/types'
 
 const TONE: Record<string, 'live' | 'amber' | 'idle'> = {
   EXPLORING: 'idle',
@@ -17,6 +17,28 @@ const TONE: Record<string, 'live' | 'amber' | 'idle'> = {
   ACTIVE: 'live',
   COMPLETED: 'live',
   ARCHIVED: 'idle',
+}
+
+function RelatedProjectButton({
+  projectId,
+  bundle,
+  onOpen,
+}: {
+  projectId: string
+  bundle: ContentBundle
+  onOpen: (projectId: string) => void
+}) {
+  const project = findProject(bundle, projectId)
+  if (!project) return null
+
+  return (
+    <button
+      onClick={() => onOpen(projectId)}
+      className="mono text-[9px] tk amber"
+    >
+      → {project.title.toUpperCase()}
+    </button>
+  )
 }
 
 export default function Lab() {
@@ -124,19 +146,9 @@ export default function Lab() {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[var(--line)] pt-4">
-                {entry.relatedProjects?.map((pid) => {
-                  const project = findProject(bundle, pid)
-                  if (!project) return null
-                  return (
-                    <button
-                      key={pid}
-                      onClick={() => openDossier({ id: project.id, title: project.title, category: project.category })}
-                      className="mono text-[9px] tk amber"
-                    >
-                      → {project.title.toUpperCase()}
-                    </button>
-                  )
-                })}
+                {entry.relatedProjects?.map((pid) => (
+                  <RelatedProjectButton key={pid} projectId={pid} bundle={bundle} onOpen={openProject} />
+                ))}
                 {entry.link && (
                   <a
                     href={entry.link}
@@ -199,19 +211,9 @@ export default function Lab() {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[var(--line)] pt-4">
-                {r.relatedProjects?.map((pid) => {
-                  const project = findProject(bundle, pid)
-                  if (!project) return null
-                  return (
-                    <button
-                      key={pid}
-                      onClick={() => openDossier({ id: project.id, title: project.title, category: project.category })}
-                      className="mono text-[9px] tk amber"
-                    >
-                      → {project.title.toUpperCase()}
-                    </button>
-                  )
-                })}
+                {r.relatedProjects?.map((pid) => (
+                  <RelatedProjectButton key={pid} projectId={pid} bundle={bundle} onOpen={openProject} />
+                ))}
                 {r.link && (
                   <a
                     href={r.link}

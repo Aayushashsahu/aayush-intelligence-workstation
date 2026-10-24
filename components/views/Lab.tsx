@@ -38,6 +38,20 @@ export default function Lab() {
     if (project) openDossier({ id: project.id, title: project.title, category: project.category })
   }
 
+  const renderRelatedProject = (pid: string) => {
+    const project = findProject(bundle, pid)
+    if (!project) return null
+    return (
+      <button
+        key={pid}
+        onClick={() => openProject(pid)}
+        className="mono text-[9px] tk amber"
+      >
+        → {project.title.toUpperCase()}
+      </button>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <section className="panel p-6 md:p-8">
@@ -124,19 +138,7 @@ export default function Lab() {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[var(--line)] pt-4">
-                {entry.relatedProjects?.map((pid) => {
-                  const project = findProject(bundle, pid)
-                  if (!project) return null
-                  return (
-                    <button
-                      key={pid}
-                      onClick={() => openDossier({ id: project.id, title: project.title, category: project.category })}
-                      className="mono text-[9px] tk amber"
-                    >
-                      → {project.title.toUpperCase()}
-                    </button>
-                  )
-                })}
+                {entry.relatedProjects?.map(renderRelatedProject)}
                 {entry.link && (
                   <a
                     href={entry.link}
@@ -199,19 +201,7 @@ export default function Lab() {
               </div>
 
               <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-[var(--line)] pt-4">
-                {r.relatedProjects?.map((pid) => {
-                  const project = findProject(bundle, pid)
-                  if (!project) return null
-                  return (
-                    <button
-                      key={pid}
-                      onClick={() => openDossier({ id: project.id, title: project.title, category: project.category })}
-                      className="mono text-[9px] tk amber"
-                    >
-                      → {project.title.toUpperCase()}
-                    </button>
-                  )
-                })}
+                {r.relatedProjects?.map(renderRelatedProject)}
                 {r.link && (
                   <a
                     href={r.link}

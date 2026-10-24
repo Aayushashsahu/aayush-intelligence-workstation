@@ -215,38 +215,56 @@ async function callGemini(
   ]
   const uniqueModels = Array.from(new Set(models))
 
-  let lastRes: Response | null = null
+  const reqBody = JSON.stringify({
+    system_instruction: {
+      parts: [{ text: systemPrompt }],
+    },
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: userMessage }],
+      },
+    ],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      maxOutputTokens: 2500,
+      temperature: 0.2,
+    },
+  })
 
-  for (const mod of uniqueModels) {
+  const fetchTasks = uniqueModels.map((mod) => {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${mod}:generateContent?key=${key}`
-    const res = await fetch(url, {
+    const controller = new AbortController()
+    const promise = fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: systemPrompt }],
-        },
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: userMessage }],
-          },
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          maxOutputTokens: 2500,
-          temperature: 0.2,
-        },
-      }),
-    })
+      body: reqBody,
+      signal: controller.signal,
+    }).catch((err) => err)
+
+    return { promise, controller }
+  })
+
+  let lastRes: Response | null = null
+
+  for (const task of fetchTasks) {
+    const res = await task.promise
+
+    if (res instanceof Error) {
+      if (res.name === 'AbortError') break
+      continue
+    }
 
     if (res.ok) {
+      // Abort all other pending requests
+      fetchTasks.forEach((t) => { if (t !== task) t.controller.abort() })
       return res
     }
 
     lastRes = res
     // Only fall back to next model on rate limit (429), high demand (503), or not found (404)
     if (res.status !== 429 && res.status !== 503 && res.status !== 404) {
+      fetchTasks.forEach((t) => { if (t !== task) t.controller.abort() })
       return res
     }
   }

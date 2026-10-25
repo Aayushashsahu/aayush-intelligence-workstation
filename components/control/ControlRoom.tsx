@@ -27,7 +27,7 @@ const SINGLETONS: AdminDomain[] = ['profile', 'founder']
  *
  * The API distinguishes "you are not allowed" (404), "that payload is wrong"
  * (400) and "writes need a datastore" (503). Collapsing those into one generic
- * failure would hide the only useful information — what to fix.
+ * failure would hide the only useful information — what to correct.
  */
 async function failureReason(res: Response, fallback: string): Promise<string> {
   try {

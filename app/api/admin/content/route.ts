@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'
 
 /**
  * Writes need a datastore. Without one the control room is read-only over the
- * committed seed, so answer 503 with a fixable reason instead of a 500 that
+ * committed seed, so answer 503 with an actionable reason instead of a 500 that
  * looks like a crash.
  */
 function requireStorage(): NextResponse | null {

@@ -36,8 +36,8 @@ function countActive(repos: Repo[]): number {
 function eventsFallback(events: GithubEvent[]) {
   const days = 365
   const since = new Date()
-  since.setDate(since.getDate() - (days - 1))
-  since.setHours(0, 0, 0, 0)
+  since.setUTCDate(since.getUTCDate() - (days - 1))
+  since.setUTCHours(0, 0, 0, 0)
   const map = new Map<string, number>()
   for (const e of events) {
     const d = new Date(e.created_at)
@@ -49,7 +49,7 @@ function eventsFallback(events: GithubEvent[]) {
   }
   return Array.from({ length: days }, (_, i) => {
     const d = new Date(since)
-    d.setDate(d.getDate() + i)
+    d.setUTCDate(d.getUTCDate() + i)
     const date = d.toISOString().slice(0, 10)
     return { date, contributionCount: map.get(date) || 0 }
   })

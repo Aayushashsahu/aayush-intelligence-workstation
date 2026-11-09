@@ -8,16 +8,42 @@ import {
   AlertTriangle,
   FolderGit2,
   Network,
-  GitCommitHorizontal,
   ChevronRight,
-  ShieldAlert,
+  ExternalLink,
+  FileCode,
+  FileText,
+  Binary,
+  Layers,
+  ShieldCheck,
+  Cpu,
+  Info,
 } from 'lucide-react'
 import { useWorkstation } from '@/components/workstation/store'
 import { Chip, Label, Led } from '@/components/ui/Primitives'
 import { useContent } from '@/components/workstation/ContentProvider'
-import { findProject } from '@/lib/content'
 
-type CortexResult = {
+export type CortexSource = {
+  label: string
+  path: string
+  url: string
+  category?: 'DOCUMENTATION' | 'ARCHITECTURE' | 'AUDIT' | 'IMPLEMENTATION' | 'TEST' | 'METADATA' | string
+}
+
+export type ProjectDetails = {
+  name?: string
+  repoUrl?: string
+  category?: string
+  objective?: string
+  architecture?: string[]
+  techStack?: string[]
+  capabilities?: string[]
+  findings?: string[]
+  limitations?: string[]
+  status?: string
+  verificationGaps?: string[]
+}
+
+export type CortexResult = {
   kind?: string
   verdict?: string | null
   confidence?: number | null
@@ -26,6 +52,8 @@ type CortexResult = {
   gaps?: string[]
   verify?: string[]
   text?: string
+  sources?: CortexSource[]
+  projectDetails?: ProjectDetails
 }
 
 type Turn = {
@@ -36,23 +64,24 @@ type Turn = {
 }
 
 const SUGGESTED = [
-  'Would Aayush fit an AI engineering role?',
-  'What evidence suggests he can build AI systems?',
-  'Which projects best demonstrate systems engineering?',
+  'What does Infinite Money Glitch Detector do?',
+  'Explain the architecture of the Infinite Money Glitch Detector.',
+  'Did the strategy actually make money?',
+  'What are the project’s limitations?',
+  'Would Aayush fit an AI systems engineering role?',
   'What are the core tradeoffs in SentinelForge and AEGIS?',
-  'What should an interviewer verify about his background?',
 ]
 
 const SCAN_PHASES = [
   '01 // LOCKING SCOPE BOUNDARY TO AAYUSH SAHU',
-  '02 // SCANNING VERIFIED PROJECT CASE FILES',
-  '03 // CORRELATING LIVE GITHUB REPOSITORY TELEMETRY',
-  '04 // EVALUATING DETERMINISTIC PROVENANCE',
+  '02 // DISCOVERING & RETRIEVING REPOSITORY INTELLIGENCE',
+  '03 // SCANNING VERIFIED ARCHITECTURE & AUDIT EVIDENCE',
+  '04 // CROSS-REFERENCING IMPLEMENTATION & TESTS',
   '05 // COMPILING EVIDENCE-GROUNDED INTELLIGENCE REPORT',
 ]
 
 export default function Cortex() {
-  const { cortexQuery, clearCortexQuery, notice, github, setView } = useWorkstation()
+  const { cortexQuery, clearCortexQuery, notice, github } = useWorkstation()
   const [turns, setTurns] = useState<Turn[]>([])
   const [msg, setMsg] = useState('')
   const [loading, setLoading] = useState(false)
@@ -153,7 +182,7 @@ export default function Cortex() {
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">
               CORTEX is a specialized intelligence engine scoped strictly to Aayush Sahu and his documented work.
-              It synthesizes verified case files and live GitHub telemetry to evaluate technical depth, architecture, and fit.
+              It synthesizes verified repository documentation, source code, case files, and live GitHub telemetry.
             </p>
           </div>
 
@@ -162,7 +191,7 @@ export default function Cortex() {
               <Led tone={github ? 'live' : 'idle'} /> TELEMETRY SOURCE: {github ? 'LIVE' : 'LINKING'}
             </span>
             <span className="flex items-center gap-2">
-              <Led tone="amber" pulse /> SCOPE BOUNDARY: HARDENED AAYUSH LOCK
+              <Led tone="amber" pulse /> REPO INTELLIGENCE: ENABLED
             </span>
           </div>
         </div>
@@ -170,12 +199,12 @@ export default function Cortex() {
         {/* Query & Conversation Container */}
         <div
           ref={bodyRef}
-          className="max-h-[58vh] min-h-[340px] space-y-6 overflow-y-auto p-5 md:p-7"
+          className="max-h-[64vh] min-h-[340px] space-y-6 overflow-y-auto p-5 md:p-7"
         >
           {!turns.length && (
             <div className="space-y-4">
               <div className="mono text-[9px] tk-lg text-[var(--dim)] flex items-center justify-between">
-                <span>SAMPLE EVALUATION QUERIES</span>
+                <span>SAMPLE EVALUATION &amp; REPOSITORY INTELLIGENCE QUERIES</span>
                 <span className="text-[var(--amber)]">SELECT TO QUERY INTELLIGENCE CORE</span>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -223,7 +252,7 @@ export default function Cortex() {
                 <div className="progress-fill" style={{ width: `${progress}%` }} />
               </div>
               <div className="mono text-[9px] text-[var(--dim)]">
-                Cross-referencing verified repository commits, system constraints, and provenance files…
+                Cross-referencing repository documentation, AST architecture guards, and live code telemetry…
               </div>
             </div>
           )}
@@ -285,9 +314,16 @@ function CortexReportCard({ result, timestamp }: { result: CortexResult; timesta
 
   // Detect project mentions in text/evidence to create discovery bridges
   const mentionedProjects = bundle.projects.filter((p) => {
-    const textToSearch = `${result.summary || ''} ${(result.evidence || []).join(' ')}`.toLowerCase()
-    return textToSearch.includes(p.title.toLowerCase()) || textToSearch.includes(p.id.toLowerCase())
+    const textToSearch = `${result.summary || ''} ${(result.evidence || []).join(' ')} ${result.projectDetails?.name || ''}`.toLowerCase()
+    return (
+      textToSearch.includes(p.title.toLowerCase()) ||
+      textToSearch.includes(p.id.toLowerCase()) ||
+      (p.repo && textToSearch.includes(p.repo.toLowerCase()))
+    )
   })
+
+  const pd = result.projectDetails
+  const sources = result.sources || []
 
   return (
     <div className="panel border-[var(--line-2)] bg-[var(--surface-2)] p-5 md:p-6 shadow-md transition-all">
@@ -363,6 +399,84 @@ function CortexReportCard({ result, timestamp }: { result: CortexResult; timesta
         </p>
       </div>
 
+      {/* Structured Project Intelligence Dossier (if present) */}
+      {pd && (
+        <div className="mt-5 panel-flat border border-[var(--amber-line)] bg-[rgba(255,140,0,0.03)] p-4 md:p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--line)] pb-3">
+            <div className="flex items-center gap-2">
+              <Cpu size={14} className="text-[var(--amber)]" />
+              <span className="mono text-[9px] tk-lg font-bold text-[var(--text)]">
+                PROJECT INTELLIGENCE DOSSIER // {pd.name || 'DOCUMENTED SYSTEM'}
+              </span>
+            </div>
+            {pd.repoUrl && (
+              <a
+                href={pd.repoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono text-[9px] text-[var(--amber)] hover:text-[var(--amber-hi)] flex items-center gap-1.5 transition-colors"
+              >
+                <span>OPEN REPOSITORY</span>
+                <ExternalLink size={10} />
+              </a>
+            )}
+          </div>
+
+          {pd.objective && (
+            <div className="mt-3">
+              <div className="mono text-[8px] tk-lg text-[var(--dim)]">OBJECTIVE &amp; PROBLEM STATEMENT</div>
+              <p className="mt-1 text-xs leading-5 text-[var(--muted)]">{pd.objective}</p>
+            </div>
+          )}
+
+          {pd.architecture && pd.architecture.length > 0 && (
+            <div className="mt-3.5">
+              <div className="mono text-[8px] tk-lg text-[var(--dim)]">ARCHITECTURE &amp; DATA PIPELINE</div>
+              <ul className="mt-1.5 space-y-1">
+                {pd.architecture.map((item, i) => (
+                  <li key={i} className="text-xs leading-5 text-[var(--muted)] flex gap-2 items-start">
+                    <span className="mono text-[8px] text-[var(--amber)] mt-0.5">0{i + 1}</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {pd.techStack && pd.techStack.length > 0 && (
+            <div className="mt-3.5">
+              <div className="mono text-[8px] tk-lg text-[var(--dim)] mb-1.5">TECHNOLOGY STACK</div>
+              <div className="flex flex-wrap gap-1.5">
+                {pd.techStack.map((tech, i) => (
+                  <span
+                    key={i}
+                    className="mono text-[8px] tk px-2 py-0.5 border border-[var(--line)] bg-[rgba(255,255,255,0.03)] text-[var(--text)]"
+                  >
+                    {tech}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {pd.limitations && pd.limitations.length > 0 && (
+            <div className="mt-4 border-t border-[var(--line)] pt-3">
+              <div className="mono text-[8px] tk-lg text-[var(--amber)] flex items-center gap-1.5">
+                <AlertTriangle size={10} /> DOCUMENTED RESEARCH LIMITATIONS
+              </div>
+              <ul className="mt-1.5 space-y-1">
+                {pd.limitations.map((lim, i) => (
+                  <li key={i} className="text-xs leading-5 text-[var(--dim)] flex gap-2 items-start">
+                    <span className="text-[var(--amber)]">•</span>
+                    <span>{lim}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Structured Sections: Evidence, Gaps, Verification */}
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {result.evidence && result.evidence.length > 0 && (
@@ -413,6 +527,55 @@ function CortexReportCard({ result, timestamp }: { result: CortexResult; timesta
           </div>
         )}
       </div>
+
+      {/* Dedicated Evidence Sources & Provenance Section */}
+      {sources.length > 0 && (
+        <div className="mt-5 border-t border-[var(--line)] pt-4">
+          <div className="mono text-[8px] tk-lg text-[var(--amber)] flex items-center justify-between mb-2.5">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck size={11} /> EVIDENCE SOURCES &amp; PROVENANCE ({sources.length})
+            </span>
+            <span className="text-[var(--dim)]">GITHUB REPOSITORY DOCUMENTS</span>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2">
+            {sources.map((s, idx) => (
+              <a
+                key={idx}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="panel-flat group p-2.5 flex items-center justify-between text-xs transition-all hover:border-[var(--amber-line)] hover:bg-[var(--amber-wash)]"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  {s.category === 'IMPLEMENTATION' ? (
+                    <FileCode size={13} className="text-[var(--amber)] shrink-0" />
+                  ) : s.category === 'ARCHITECTURE' ? (
+                    <Layers size={13} className="text-[var(--amber)] shrink-0" />
+                  ) : s.category === 'AUDIT' ? (
+                    <ShieldCheck size={13} className="text-[var(--amber)] shrink-0" />
+                  ) : (
+                    <FileText size={13} className="text-[var(--muted)] shrink-0" />
+                  )}
+                  <div className="truncate">
+                    <span className="mono text-[8px] text-[var(--amber)] block">{s.label}</span>
+                    <span className="text-[var(--text)] group-hover:text-[var(--amber-hi)] font-medium truncate block">
+                      {s.path}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="mono text-[7px] tk px-1.5 py-0.5 border border-[var(--line)] bg-[rgba(0,0,0,0.3)] text-[var(--dim)]">
+                    {s.category || 'DOCS'}
+                  </span>
+                  <ExternalLink size={10} className="text-[var(--dim)] group-hover:text-[var(--amber-hi)]" />
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Cross-System Discovery Bridge */}
       {mentionedProjects.length > 0 && (

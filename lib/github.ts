@@ -1,13 +1,25 @@
 import type { GithubData, GithubEvent, LanguageStat, Repo } from '@/lib/types'
 
-const API = 'https://api.github.com'
-const UA = 'aayush-intelligence-workstation'
+export const GITHUB_API = 'https://api.github.com'
+export const GITHUB_UA = 'aayush-intelligence-workstation'
 
 const round = (n: number, p = 1000) => Math.round(n * p) / p
 
+export function getGithubHeaders(customHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'User-Agent': GITHUB_UA,
+    ...customHeaders,
+  }
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
+  }
+  return headers
+}
+
 async function gh(path: string, revalidate = 300) {
-  const res = await fetch(API + path, {
-    headers: { Accept: 'application/vnd.github+json', 'User-Agent': UA },
+  const res = await fetch(GITHUB_API + path, {
+    headers: getGithubHeaders(),
     next: { revalidate },
   })
   if (!res.ok) throw new Error(`GitHub ${res.status}`)
@@ -67,12 +79,12 @@ async function graphContributions(username: string, token: string) {
       }
     }
   }`
-  const res = await fetch(`${API}/graphql`, {
+  const res = await fetch(`${GITHUB_API}/graphql`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
-      'User-Agent': UA,
+      'User-Agent': GITHUB_UA,
     },
     body: JSON.stringify({ query, variables: { login: username } }),
     cache: 'no-store',

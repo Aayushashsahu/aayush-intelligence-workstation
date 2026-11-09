@@ -35,6 +35,20 @@ const KNOWN_ENTITIES = [
   'candidate',
   'founder',
   'author',
+  'infinite money glitch detector',
+  'infinite-money-glitch-detector',
+  'the-infinite-money-glitch-detector',
+  'money glitch',
+  'glitch detector',
+  'arbitrage detector',
+  'carry trade',
+  'reconciliation-engine',
+  'reconciliation engine',
+  'career-os',
+  'career os',
+  'personal-ai-router',
+  'personal ai router',
+  'ai router',
 ]
 
 /**
@@ -236,7 +250,7 @@ export function sanitizeCortexResponse(parsed: any): any {
     }
   }
 
-  return {
+  const baseResult: Record<string, unknown> = {
     kind: typeof parsed.kind === 'string' ? parsed.kind : 'profile',
     verdict: parsed.verdict ?? null,
     confidence: typeof parsed.confidence === 'number' ? parsed.confidence : null,
@@ -245,4 +259,36 @@ export function sanitizeCortexResponse(parsed: any): any {
     gaps: Array.isArray(parsed.gaps) ? parsed.gaps : [],
     verify: Array.isArray(parsed.verify) ? parsed.verify : [],
   }
+
+  // Preserve and sanitize evidence sources if provided
+  if (Array.isArray(parsed.sources)) {
+    baseResult.sources = parsed.sources
+      .filter((s: any) => s && typeof s.label === 'string' && typeof s.url === 'string')
+      .map((s: any) => ({
+        label: String(s.label),
+        path: String(s.path || s.label),
+        url: String(s.url),
+        category: String(s.category || 'DOCUMENTATION'),
+      }))
+  }
+
+  // Preserve and sanitize structured project report if provided
+  if (parsed.projectDetails && typeof parsed.projectDetails === 'object') {
+    const pd = parsed.projectDetails
+    baseResult.projectDetails = {
+      name: typeof pd.name === 'string' ? pd.name : undefined,
+      repoUrl: typeof pd.repoUrl === 'string' ? pd.repoUrl : undefined,
+      category: typeof pd.category === 'string' ? pd.category : undefined,
+      objective: typeof pd.objective === 'string' ? pd.objective : undefined,
+      architecture: Array.isArray(pd.architecture) ? pd.architecture : undefined,
+      techStack: Array.isArray(pd.techStack) ? pd.techStack : undefined,
+      capabilities: Array.isArray(pd.capabilities) ? pd.capabilities : undefined,
+      findings: Array.isArray(pd.findings) ? pd.findings : undefined,
+      limitations: Array.isArray(pd.limitations) ? pd.limitations : undefined,
+      status: typeof pd.status === 'string' ? pd.status : undefined,
+      verificationGaps: Array.isArray(pd.verificationGaps) ? pd.verificationGaps : undefined,
+    }
+  }
+
+  return baseResult
 }
